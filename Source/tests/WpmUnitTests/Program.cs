@@ -36,6 +36,7 @@ namespace Phanmemwar3.Tests
             Test_MapSaveManager_Deep();
             Test_PluginManager();
             Test_SaveValueMuter();
+            Test_CompactUILayoutAndLocalization();
 
             Console.WriteLine("==================================================");
             Console.WriteLine($"SUBTEST RESULTS: {passed} PASSED, {failed} FAILED");
@@ -274,6 +275,99 @@ namespace Phanmemwar3.Tests
             finally
             {
                 if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+        }
+
+        static void Test_CompactUILayoutAndLocalization()
+        {
+            Console.WriteLine("\n[6] Testing Compact UI & Localization Integrity");
+
+            // 1. Check pathHintShort in all 3 languages
+            var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
+            string vnHint = cfg.GetText("pathHintShort", "VN");
+            string enHint = cfg.GetText("pathHintShort", "EN");
+            string cnHint = cfg.GetText("pathHintShort", "CN");
+
+            Assert(!string.IsNullOrEmpty(vnHint) && vnHint != "pathHintShort", "VN contains pathHintShort");
+            Assert(!string.IsNullOrEmpty(enHint) && enHint != "pathHintShort", "EN contains pathHintShort");
+            Assert(!string.IsNullOrEmpty(cnHint) && cnHint != "pathHintShort", "CN contains pathHintShort");
+
+            // 2. Check UI keys existence across languages
+            string[] keys = new[]
+            {
+                "appName", "browse", "selectWar3Folder", "pathHintShort", "mapSaveTitle",
+                "selectMap", "newSlot", "backupSlot", "deleteSlot", "restoreSlot",
+                "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
+                "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
+                "btnCheckUpdate", "muteShort", "btnCloseGame", "btnRunGame", "statusLabel",
+                "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
+                "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry"
+            };
+
+            bool allPresent = true;
+            foreach (var lang in new[] { "VN", "EN", "CN" })
+            {
+                foreach (var k in keys)
+                {
+                    if (cfg.GetText(k, lang) == k)
+                    {
+                        Console.WriteLine($"    Missing key '{k}' in [{lang}]");
+                        allPresent = false;
+                    }
+                }
+            }
+            Assert(allPresent, "All 36 core UI keys are translated across VN, EN, CN");
+
+            // 3. Test Form Instantiation & Compact Dimensions in STA thread
+            Exception? staEx = null;
+            var thread = new System.Threading.Thread(() =>
+            {
+                try
+                {
+                    using var mainForm = new Phanmemwar3.Forms.MainForm();
+                    Assert(mainForm.ClientSize.Width == 760 && mainForm.ClientSize.Height == 552, "MainForm fixed compact ClientSize is 760x552");
+                    Assert(mainForm.MinimumSize.Width == 760 && mainForm.MinimumSize.Height == 552, "MainForm MinimumSize is 760x552");
+                    Assert(mainForm.MaximumSize.Width == 760 && mainForm.MaximumSize.Height == 552, "MainForm MaximumSize is 760x552");
+                    Assert(mainForm.FormBorderStyle == System.Windows.Forms.FormBorderStyle.None, "MainForm FormBorderStyle is None");
+
+                    // Check btnOpenFolder does not get overwritten by ellipsis
+                    System.Windows.Forms.Control? FindBtn(System.Windows.Forms.Control parent, string text)
+                    {
+                        foreach (System.Windows.Forms.Control c in parent.Controls)
+                        {
+                            if (c.Text == text) return c;
+                            var found = FindBtn(c, text);
+                            if (found != null) return found;
+                        }
+                        return null;
+                    }
+
+                    var arrowBtn = FindBtn(mainForm, "↗");
+                    Assert(arrowBtn != null, "btnOpenFolder text is '↗'");
+                    Assert(arrowBtn?.Tag == null, "btnOpenFolder.Tag is null (protects against '...' ellipsis overwrite)");
+
+                    using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
+                    Assert(settingsForm.ClientSize.Width == 510 && settingsForm.ClientSize.Height == 520, "SettingsForm fixed compact ClientSize is 510x520");
+                    Assert(settingsForm.MinimumSize.Width == 510 && settingsForm.MinimumSize.Height == 520, "SettingsForm MinimumSize is 510x520");
+                    Assert(settingsForm.MaximumSize.Width == 510 && settingsForm.MaximumSize.Height == 520, "SettingsForm MaximumSize is 510x520");
+                }
+                catch (Exception ex)
+                {
+                    staEx = ex;
+                }
+            });
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (staEx != null)
+            {
+                Console.WriteLine($"  [FAIL] Form STA initialization threw: {staEx}");
+                failed++;
+            }
+            else
+            {
+                Assert(true, "Forms instantiate and validate layout bounds cleanly on STA thread");
             }
         }
     }

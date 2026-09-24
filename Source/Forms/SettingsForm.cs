@@ -31,19 +31,6 @@ namespace Phanmemwar3.Forms
             LoadData();
         }
 
-        private Image? LoadIcon(string name)
-        {
-            try
-            {
-                string p = Path.Combine(_appDir, "Resources", name);
-                if (File.Exists(p)) return Image.FromFile(p);
-                string p2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Resources", name);
-                if (File.Exists(p2)) return Image.FromFile(p2);
-            }
-            catch { }
-            return null;
-        }
-
         private void InitializeComponent()
         {
             Text = T("settingsTitle");
@@ -55,6 +42,7 @@ namespace Phanmemwar3.Forms
             BackColor = Color.FromArgb(12, 18, 29);
             ForeColor = Color.White;
             Font = new Font("Segoe UI", 9.5f);
+            AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             DoubleBuffered = true;
 
@@ -77,7 +65,7 @@ namespace Phanmemwar3.Forms
             footer.Controls.Add(btnCancel, 0, 0); footer.Controls.Add(btnSave, 1, 0);
             shell.Controls.Add(footer, 0, 2);
 
-            var scroller = new Panel { Dock = DockStyle.Fill, Padding = new Padding(18, 10, 18, 8) };
+            var scroller = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(18, 10, 18, 8) };
             shell.Controls.Add(scroller, 0, 1);
             var content = new TableLayoutPanel { Dock = DockStyle.Top, Height = 376, ColumnCount = 1, RowCount = 11 };
             content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));

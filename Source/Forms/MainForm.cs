@@ -50,6 +50,7 @@ namespace Phanmemwar3.Forms
         private ModernButton btnSettings;
         private Label statusLabel;
         private Label lblServerInfo;
+        private string? _cachedServerVersion;
 
 
         public MainForm()
@@ -131,8 +132,16 @@ namespace Phanmemwar3.Forms
             BackColor = Color.FromArgb(11, 18, 29);
             ForeColor = Color.White;
             Font = new Font("Segoe UI", 9.5f);
+            AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             DoubleBuffered = true;
+            Shown += (s, e) =>
+            {
+                Rectangle area = Screen.FromControl(this).WorkingArea;
+                int x = Math.Max(area.Left, Math.Min(Location.X, area.Right - Width));
+                int y = Math.Max(area.Top, Math.Min(Location.Y, area.Bottom - Height));
+                Location = new Point(x, y);
+            };
 
             var shell = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Margin = Padding.Empty, Padding = Padding.Empty };
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -206,7 +215,7 @@ namespace Phanmemwar3.Forms
                 LoadProfilesList(selected); RefreshMaps();
             };
             btnBrowse = ActionButton("browse", BtnBrowse_Click); Place(pathRow, btnBrowse, 1);
-            btnOpenFolder = ActionButton("btnOpenFolder", BtnOpenFolder_Click); btnOpenFolder.Text = "↗"; btnOpenFolder.Tag = "btnOpenFolder";
+            btnOpenFolder = ActionButton("btnOpenFolder", BtnOpenFolder_Click); btnOpenFolder.Text = "↗"; btnOpenFolder.Tag = null;
             Place(pathRow, btnOpenFolder, 2);
             gameBody.Controls.Add(pathRow, 0, 1);
             lblPathHint = Label("pathHintShort"); gameBody.Controls.Add(lblPathHint, 0, 2);
@@ -300,7 +309,7 @@ namespace Phanmemwar3.Forms
             btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 11f, FontStyle.Bold);
             Place(playRow, btnRunGame, 2);
             playBody.Controls.Add(playRow, 0, 0);
-            lblServerInfo = Label("serverUnknown"); playBody.Controls.Add(lblServerInfo, 0, 1);
+            lblServerInfo = Label("serverUnknown"); lblServerInfo.Tag = null; playBody.Controls.Add(lblServerInfo, 0, 1);
             _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
             txtWar3Path.InnerTextBox.MouseEnter += (s, e) => _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
             UpdateActionTips();
@@ -340,9 +349,11 @@ namespace Phanmemwar3.Forms
         private int LanguageIndex() => _config.GetSetting("Language", "EN").ToUpperInvariant() switch
         { "VN" => 1, "CN" => 2, _ => 0 };
 
+        private bool _suppressLanguageEvent;
+
         private void ChangeLanguage()
         {
-            if (cboLanguage.SelectedIndex < 0) return;
+            if (_suppressLanguageEvent || cboLanguage.SelectedIndex < 0) return;
             _config.SetSetting("Language", cboLanguage.SelectedItem?.ToString() ?? "EN");
             _config.SaveSettings();
             ApplyLanguage();
@@ -419,7 +430,8 @@ namespace Phanmemwar3.Forms
                     {
                         this.BeginInvoke(new Action(() =>
                         {
-                            lblServerInfo.Text = string.Format(T("serverVersion"), ver.Version);
+                            _cachedServerVersion = ver.Version;
+                            lblServerInfo.Text = string.Format(T("serverVersion"), _cachedServerVersion);
                         }));
                     }
                 }
@@ -745,9 +757,10 @@ namespace Phanmemwar3.Forms
             cboPlugins.Enabled = enabled;
             btnSettings.Enabled = enabled;
             cboSlots.Enabled = enabled;
-            cboInstances.Enabled = enabled;
+            cboInstances.Enabled = false;
             btnBrowseMap.Enabled = enabled;
             btnBrowse.Enabled = enabled;
+            btnOpenFolder.Enabled = enabled;
             txtWar3Path.Enabled = enabled;
             cboLanguage.Enabled = enabled;
             btnCheckUpdate.Enabled = enabled;
@@ -842,7 +855,8 @@ namespace Phanmemwar3.Forms
                 var info = await _updater.CheckForUpdatesAsync();
                 if (info != null)
                 {
-                    lblServerInfo.Text = string.Format(T("serverVersion"), info.Version);
+                    _cachedServerVersion = info.Version;
+                    lblServerInfo.Text = string.Format(T("serverVersion"), _cachedServerVersion);
                     using var uf = new UpdateForm(info, _updater, _appDir);
                     uf.ShowDialog(this);
                     LoadProfilesList(txtWar3Path.TextContent.Trim());
@@ -884,6 +898,17 @@ namespace Phanmemwar3.Forms
             cboPlugins.Invalidate();
             UpdateActionTips();
             statusLabel.Text = T("ready");
+
+            lblServerInfo.Text = _cachedServerVersion != null ?
+                string.Format(T("serverVersion"), _cachedServerVersion) : T("serverUnknown");
+
+            int expectedLang = LanguageIndex();
+            if (cboLanguage != null && cboLanguage.SelectedIndex != expectedLang)
+            {
+                _suppressLanguageEvent = true;
+                try { cboLanguage.SelectedIndex = expectedLang; }
+                finally { _suppressLanguageEvent = false; }
+            }
         }
 
         private void BtnSettings_Click(object? sender, EventArgs e)
@@ -896,6 +921,16 @@ namespace Phanmemwar3.Forms
                 statusLabel.Text = T("settingsSaved");
                 statusLabel.ForeColor = Color.FromArgb(46, 204, 113);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _mapTip.Dispose();
+                _actionTip.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
     }
