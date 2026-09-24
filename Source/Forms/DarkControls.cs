@@ -275,12 +275,15 @@ namespace Phanmemwar3.Forms
 
             var textRect = ButtonIcon != null
                 ? new Rectangle(textX, 0, this.Width - textX - 8, this.Height)
-                : new Rectangle(7, 0, Math.Max(0, this.Width - 14), this.Height);
+                : new Rectangle(3, 0, Math.Max(0, this.Width - 6), this.Height);
             if (textRect.Width > 0)
+            {
+                var flags = TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix |
+                    (ButtonIcon == null ? TextFormatFlags.HorizontalCenter : TextFormatFlags.Left);
+                if (this.Width >= 55) flags |= TextFormatFlags.EndEllipsis;
                 TextRenderer.DrawText(e.Graphics, Text, Font, textRect,
-                    Enabled ? ForeColor : Color.FromArgb(115, 132, 155),
-                    TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis |
-                    TextFormatFlags.NoPrefix | (ButtonIcon == null ? TextFormatFlags.HorizontalCenter : TextFormatFlags.Left));
+                    Enabled ? ForeColor : Color.FromArgb(115, 132, 155), flags);
+            }
             if (Focused && ShowFocusCues)
                 ControlPaint.DrawFocusRectangle(e.Graphics, Rectangle.Inflate(rect, -4, -4), Color.White, c1);
         }

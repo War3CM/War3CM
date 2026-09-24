@@ -125,9 +125,9 @@ namespace Phanmemwar3.Forms
         {
             Text = HeaderText("appName");
             FormBorderStyle = FormBorderStyle.None;
-            ClientSize = new Size(760, 552);
-            MinimumSize = new Size(760, 552);
-            MaximumSize = new Size(760, 552);
+            ClientSize = new Size(820, 648);
+            MinimumSize = new Size(820, 648);
+            MaximumSize = new Size(820, 648);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.FromArgb(11, 18, 29);
             ForeColor = Color.White;
@@ -145,42 +145,44 @@ namespace Phanmemwar3.Forms
 
             var shell = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Margin = Padding.Empty, Padding = Padding.Empty };
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            foreach (int h in new[] { 34, 76 }) shell.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
+            foreach (int h in new[] { 34, 82 }) shell.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 94));
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 108));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             Controls.Add(shell);
             shell.Controls.Add(new ModernTitleBar(this, HeaderText("appName"), showMin: true, showMax: false) { Dock = DockStyle.Fill }, 0, 0);
 
-            var hero = new DarkCardPanel { Dock = DockStyle.Fill, Margin = new Padding(14, 7, 14, 7), Padding = new Padding(15, 7, 15, 7),
+            var hero = new DarkCardPanel { Dock = DockStyle.Fill, Margin = new Padding(14, 6, 14, 6), Padding = new Padding(16, 6, 16, 6),
                 BackColor = Color.FromArgb(19, 36, 56), BorderColor = Color.FromArgb(44, 76, 110) };
             shell.Controls.Add(hero, 0, 1);
             var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1 };
             heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 208));
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 226));
             hero.Controls.Add(heroGrid);
             var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
-            heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 27));
+            heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
             heroText.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             lblHeaderTitle = Label("heroTitle", true); lblHeaderTitle.Text = HeaderText("heroTitle"); lblHeaderTitle.Tag = null;
             lblHeaderTitle.Font = new Font("Segoe UI", 13f, FontStyle.Bold);
             lblHeaderSubtitle = Label("appDescription"); lblHeaderSubtitle.Text = HeaderText("appDescription"); lblHeaderSubtitle.Tag = null;
+            lblHeaderSubtitle.Font = new Font("Segoe UI", 9f);
+            lblHeaderSubtitle.ForeColor = Color.FromArgb(170, 195, 225);
             heroText.Controls.Add(lblHeaderTitle, 0, 0);
             heroText.Controls.Add(lblHeaderSubtitle, 0, 1);
             heroGrid.Controls.Add(heroText, 0, 0);
             var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2 };
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52));
-            heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(3, 0, 3, 1) };
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 54));
+            heroActions.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            heroActions.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(2, 1, 3, 2) };
             cboLanguage.Items.AddRange(new object[] { "EN", "VN", "CN" });
             cboLanguage.SelectedIndex = LanguageIndex();
             cboLanguage.SelectedIndexChanged += (s, e) => ChangeLanguage();
             heroActions.Controls.Add(cboLanguage, 0, 0);
-            btnSettings = ActionButton("btnSettings", BtnSettings_Click); btnSettings.Margin = new Padding(3, 0, 0, 1);
+            btnSettings = ActionButton("btnSettings", BtnSettings_Click); btnSettings.Margin = new Padding(3, 1, 0, 2);
             heroActions.Controls.Add(btnSettings, 1, 0);
-            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(3, 2, 0, 0);
+            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(2, 2, 0, 0);
             heroActions.Controls.Add(btnCheckUpdate, 0, 1); heroActions.SetColumnSpan(btnCheckUpdate, 2);
             heroGrid.Controls.Add(heroActions, 1, 0);
 
@@ -189,22 +191,22 @@ namespace Phanmemwar3.Forms
             workspace.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             workspace.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             shell.Controls.Add(workspace, 0, 2);
-            var left = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(0, 0, 5, 0) };
-            left.RowStyles.Add(new RowStyle(SizeType.Absolute, 114));
+            var left = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(0, 0, 6, 0) };
+            left.RowStyles.Add(new RowStyle(SizeType.Absolute, 134));
             left.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             workspace.Controls.Add(left, 0, 0);
-            var right = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(5, 0, 0, 0) };
-            right.RowStyles.Add(new RowStyle(SizeType.Absolute, 139));
+            var right = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(6, 0, 0, 0) };
+            right.RowStyles.Add(new RowStyle(SizeType.Absolute, 134));
             right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             workspace.Controls.Add(right, 1, 0);
 
             var game = Section("gameLibrary", out var gameBody); game.Margin = new Padding(0, 0, 0, 8); left.Controls.Add(game, 0, 0);
             gameBody.RowCount = 3;
-            gameBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 16));
+            gameBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
             gameBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             gameBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             gameBody.Controls.Add(Label("selectWar3Folder"), 0, 0);
-            var pathRow = Grid(34, 0, 85, 36);
+            var pathRow = Grid(34, 0, 105, 46);
             txtWar3Path = new ModernTextBox(); Place(pathRow, txtWar3Path, 0);
             txtWar3Path.InnerTextBox.Leave += (s, e) =>
             {
@@ -218,17 +220,17 @@ namespace Phanmemwar3.Forms
             btnOpenFolder = ActionButton("btnOpenFolder", BtnOpenFolder_Click); btnOpenFolder.Text = "↗"; btnOpenFolder.Tag = null;
             Place(pathRow, btnOpenFolder, 2);
             gameBody.Controls.Add(pathRow, 0, 1);
-            lblPathHint = Label("pathHintShort"); gameBody.Controls.Add(lblPathHint, 0, 2);
+            lblPathHint = Label("pathHintShort"); lblPathHint.ForeColor = Color.FromArgb(160, 185, 215); gameBody.Controls.Add(lblPathHint, 0, 2);
 
             var saves = Section("mapSaveTitle", out var saveBody); saves.Margin = Padding.Empty; left.Controls.Add(saves, 0, 1);
             saveBody.RowCount = 5;
-            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
             saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
             saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             saveBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             saveBody.Controls.Add(Label("selectMap"), 0, 0);
-            var mapRow = Grid(34, 0, 89);
+            var mapRow = Grid(34, 0, 105);
             cboMaps = new ModernComboBox();
             cboMaps.DisplayText = item => item is MapEntry entry ?
                 entry.Name + "  ·  " + Path.GetFileName(Path.GetDirectoryName(entry.Path)) : item?.ToString() ?? "";
@@ -249,8 +251,15 @@ namespace Phanmemwar3.Forms
             slotActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
             slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            btnNewSlot = ActionButton("newSlot", NewSlot); btnBackupSlot = ActionButton("backupSlot", BackupSlot);
-            btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot); btnRestoreSlot = ActionButton("restoreSlot", RestoreSlot);
+            btnNewSlot = ActionButton("newSlot", NewSlot);
+            btnNewSlot.BackColorNormal = Color.FromArgb(28, 52, 82); btnNewSlot.BackColorHover = Color.FromArgb(42, 78, 120);
+            btnNewSlot.BorderColor = Color.FromArgb(50, 110, 180);
+            btnBackupSlot = ActionButton("backupSlot", BackupSlot);
+            btnBackupSlot.BackColorNormal = Color.FromArgb(28, 52, 82); btnBackupSlot.BackColorHover = Color.FromArgb(42, 78, 120);
+            btnBackupSlot.BorderColor = Color.FromArgb(50, 110, 180);
+            btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot);
+            btnDeleteSlot.BackColorHover = Color.FromArgb(100, 30, 30); btnDeleteSlot.BorderColor = Color.FromArgb(130, 45, 45);
+            btnRestoreSlot = ActionButton("restoreSlot", RestoreSlot);
             foreach (var b in new[] { btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot }) b.Margin = new Padding(2, 2, 2, 2);
             slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnBackupSlot, 1, 0);
             slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnRestoreSlot, 1, 1);
@@ -258,7 +267,7 @@ namespace Phanmemwar3.Forms
 
             var plugins = Section("pluginOptions", out var pluginBody); plugins.Margin = new Padding(0, 0, 0, 8); right.Controls.Add(plugins, 0, 0);
             pluginBody.RowCount = 3;
-            pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
             pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             pluginBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             pluginBody.Controls.Add(Label("selectPlugin"), 0, 0);
@@ -275,13 +284,13 @@ namespace Phanmemwar3.Forms
 
             var options = Section("quickOptions", out var optionBody); options.Margin = Padding.Empty; right.Controls.Add(options, 0, 1);
             optionBody.RowCount = 5;
-            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
-            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
-            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
-            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             optionBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             optionBody.Controls.Add(Label("graphicType"), 0, 0);
-            var graphicRow = Grid(35, 0, 104);
+            var graphicRow = Grid(34, 0, 110);
             cboGraphic = new ModernComboBox(); cboGraphic.Items.AddRange(new object[] { T("openGL"), "DirectX" }); cboGraphic.SelectedIndex = 0;
             Place(graphicRow, cboGraphic, 0);
             cboInstances = new ModernComboBox(); cboInstances.Items.Add(string.Format(T("instance"), 1)); cboInstances.SelectedIndex = 0; cboInstances.Enabled = false;
@@ -295,28 +304,31 @@ namespace Phanmemwar3.Forms
             var settingsHint = Label("gameOptions"); settingsHint.ForeColor = accent;
             optionBody.Controls.Add(settingsHint, 0, 4);
 
-            var play = Section("launchTitle", out var playBody); play.Margin = new Padding(14, 4, 14, 4);
-            play.Padding = new Padding(13, 4, 13, 4);
+            var play = Section("launchTitle", out var playBody); play.Margin = new Padding(14, 5, 14, 5);
+            play.Padding = new Padding(15, 6, 15, 6);
             play.BackColor = Color.FromArgb(19, 35, 53); play.BorderColor = Color.FromArgb(43, 86, 126);
             shell.Controls.Add(play, 0, 3);
             playBody.RowCount = 2;
-            playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 37));
+            playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
             playBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            var playRow = Grid(37, 0, 130, 186);
+            var playRow = Grid(42, 0, 140, 210);
             chkMuteSaveValue = new ModernCheckBox { Text = T("muteShort"), Tag = "muteShort", Checked = true };
             Place(playRow, chkMuteSaveValue, 0);
             btnCloseGame = ActionButton("btnCloseGame", BtnCloseGame_Click); Place(playRow, btnCloseGame, 1);
-            btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 11f, FontStyle.Bold);
+            btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
             Place(playRow, btnRunGame, 2);
             playBody.Controls.Add(playRow, 0, 0);
-            lblServerInfo = Label("serverUnknown"); lblServerInfo.Tag = null; playBody.Controls.Add(lblServerInfo, 0, 1);
+            lblServerInfo = Label("serverUnknown"); lblServerInfo.Tag = null;
+            lblServerInfo.ForeColor = Color.FromArgb(170, 195, 225);
+            lblServerInfo.Margin = new Padding(2, 4, 0, 0);
+            playBody.Controls.Add(lblServerInfo, 0, 1);
             _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
             txtWar3Path.InnerTextBox.MouseEnter += (s, e) => _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
             UpdateActionTips();
 
             var status = new DarkCardPanel { Dock = DockStyle.Fill, BorderRadius = 0, BackColor = Color.FromArgb(13, 23, 37) };
-            var statusRow = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16, 4, 12, 4), ColumnCount = 2, RowCount = 1 };
-            statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112));
+            var statusRow = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16, 5, 16, 5), ColumnCount = 2, RowCount = 1 };
+            statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 115));
             statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             lblStatusTitle = Label("statusLabel", true); lblStatusTitle.ForeColor = accent;
             statusLabel = Label("ready"); statusLabel.Tag = null; statusLabel.ForeColor = Color.FromArgb(196, 216, 236);

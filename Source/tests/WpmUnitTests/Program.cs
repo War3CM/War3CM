@@ -325,9 +325,9 @@ namespace Phanmemwar3.Tests
                 try
                 {
                     using var mainForm = new Phanmemwar3.Forms.MainForm();
-                    Assert(mainForm.ClientSize.Width == 760 && mainForm.ClientSize.Height == 552, "MainForm fixed compact ClientSize is 760x552");
-                    Assert(mainForm.MinimumSize.Width == 760 && mainForm.MinimumSize.Height == 552, "MainForm MinimumSize is 760x552");
-                    Assert(mainForm.MaximumSize.Width == 760 && mainForm.MaximumSize.Height == 552, "MainForm MaximumSize is 760x552");
+                    Assert(mainForm.ClientSize.Width == 820 && mainForm.ClientSize.Height == 648, "MainForm fixed compact ClientSize is 820x648");
+                    Assert(mainForm.MinimumSize.Width == 820 && mainForm.MinimumSize.Height == 648, "MainForm MinimumSize is 820x648");
+                    Assert(mainForm.MaximumSize.Width == 820 && mainForm.MaximumSize.Height == 648, "MainForm MaximumSize is 820x648");
                     Assert(mainForm.FormBorderStyle == System.Windows.Forms.FormBorderStyle.None, "MainForm FormBorderStyle is None");
 
                     // Check btnOpenFolder does not get overwritten by ellipsis

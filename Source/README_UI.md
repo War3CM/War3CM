@@ -2,7 +2,7 @@
 
 ## What changed
 
-- The main launcher is a fixed 760 × 552 window without scrollbars. Game folder and map/save controls occupy the left column; plugin selection and game options occupy the right. The Play action and status stay visible at the bottom. The header and its text are drawn from WinForms labels, without a banner image. Settings is a fixed 510 × 520 window without scrolling; the updater retains its proportional DPI-aware layout.
+- The main launcher is a fixed 820 × 648 window without scrollbars. Game folder and map/save controls occupy the left column; plugin selection and game options occupy the right. The Play action and status stay visible at the bottom. The header and its text are drawn from WinForms labels, without a banner image. Settings is a fixed 510 × 520 window without scrolling; the updater retains its proportional DPI-aware layout.
 - Buttons use Windows text measurement, a single centered line, keyboard focus cues, and translated hover tips; map and folder paths remain available in hover tips. The settings dialog defaults to English consistently with the main window when no language has been saved.
 
 - The header is drawn by WinForms with fixed English copy, even when Vietnamese or Chinese is selected. No old raster banner containing Vietnamese text is included. All controls outside the banner use `lang.ini` (EN/VN/CN).
@@ -15,7 +15,7 @@
 
 1. Install the .NET 8 SDK with Windows desktop support, then run `dotnet build Phanmemwar3.csproj -c Release`.
 2. Run `dotnet run --project tests/MapSaveManagerSmoke/Smoke.csproj` to check map isolation, short-name collisions without overwrites, backups, deletion and restore collisions, sync, history, and root INI restoration.
-3. Open the fixed 760 × 552 launcher at 100%, 125%, and 150% display scaling and check that every card, button, tooltip, and the footer is visible. Windows work areas smaller than the scaled window need a larger screen or lower display scaling. Check Browse, Delete, Restore, YDWE, Play, ComboBox arrows, and keyboard focus. Try EN/VN/CN; the header should remain English.
+3. Open the fixed 820 × 648 launcher at 100%, 125%, and 150% display scaling and check that every card, button, tooltip, and the footer is visible. Windows work areas smaller than the scaled window need a larger screen or lower display scaling. Check Browse, Delete, Restore, YDWE, Play, ComboBox arrows, and keyboard focus. Try EN/VN/CN; the header should remain English.
 4. On Warcraft III 1.27a, select a compatible plugin, an RPG map with a long filename, and a save slot. Start the game, verify it opens inside the map, save and exit, then check the selected slot and root INI. Repeat with an existing installed plugin and a Clean profile. Check that `Maps/WPM` contains no newly staged file after exit.
 
 ## Map path sources and limitations
