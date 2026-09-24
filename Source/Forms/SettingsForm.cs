@@ -49,7 +49,8 @@ namespace Phanmemwar3.Forms
             Text = T("settingsTitle");
             FormBorderStyle = FormBorderStyle.None;
             ClientSize = new Size(510, 520);
-            MinimumSize = new Size(410, 405);
+            MinimumSize = new Size(510, 520);
+            MaximumSize = new Size(510, 520);
             StartPosition = FormStartPosition.CenterParent;
             BackColor = Color.FromArgb(12, 18, 29);
             ForeColor = Color.White;
@@ -57,12 +58,6 @@ namespace Phanmemwar3.Forms
             AutoScaleMode = AutoScaleMode.Dpi;
             DoubleBuffered = true;
 
-            Shown += (s, e) =>
-            {
-                Rectangle area = Screen.FromControl(this).WorkingArea;
-                MinimumSize = new Size(Math.Min(410, area.Width - 16), Math.Min(405, area.Height - 16));
-                Size = new Size(Math.Min(Width, area.Width - 16), Math.Min(Height, area.Height - 16));
-            };
             var shell = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3 };
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
@@ -82,11 +77,11 @@ namespace Phanmemwar3.Forms
             footer.Controls.Add(btnCancel, 0, 0); footer.Controls.Add(btnSave, 1, 0);
             shell.Controls.Add(footer, 0, 2);
 
-            var scroller = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(18, 16, 18, 10) };
+            var scroller = new Panel { Dock = DockStyle.Fill, Padding = new Padding(18, 10, 18, 8) };
             shell.Controls.Add(scroller, 0, 1);
-            var content = new TableLayoutPanel { Dock = DockStyle.Top, Height = 442, ColumnCount = 1, RowCount = 11 };
+            var content = new TableLayoutPanel { Dock = DockStyle.Top, Height = 376, ColumnCount = 1, RowCount = 11 };
             content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            foreach (int h in new[] { 34, 42, 30, 42, 31, 34, 34, 34, 34, 34, 60 })
+            foreach (int h in new[] { 25, 36, 24, 36, 27, 32, 32, 32, 32, 32, 54 })
                 content.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
             scroller.Controls.Add(content);
             Label Field(string key) => new Label { Text = T(key), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft,

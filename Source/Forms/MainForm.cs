@@ -50,15 +50,7 @@ namespace Phanmemwar3.Forms
         private ModernButton btnSettings;
         private Label statusLabel;
         private Label lblServerInfo;
-        private Panel contentViewport;
-        private FlowLayoutPanel cardStack;
-        private DarkCardPanel saveCard;
-        private TableLayoutPanel saveBody;
-        private TableLayoutPanel slotRow;
-        private TableLayoutPanel playRow;
-        private DarkCardPanel playCard;
-        private bool compactLayout;
-        private bool updatingLayout;
+
 
         public MainForm()
         {
@@ -130,127 +122,110 @@ namespace Phanmemwar3.Forms
 
         private void InitializeComponent()
         {
-            Text = T("appName");
+            Text = HeaderText("appName");
             FormBorderStyle = FormBorderStyle.None;
-            ClientSize = new Size(760, 704);
-            MinimumSize = new Size(580, 470);
+            ClientSize = new Size(760, 552);
+            MinimumSize = new Size(760, 552);
+            MaximumSize = new Size(760, 552);
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.FromArgb(12, 18, 29);
+            BackColor = Color.FromArgb(11, 18, 29);
             ForeColor = Color.White;
             Font = new Font("Segoe UI", 9.5f);
             AutoScaleMode = AutoScaleMode.Dpi;
             DoubleBuffered = true;
-            Shown += (s, e) =>
-            {
-                Rectangle area = Screen.FromControl(this).WorkingArea;
-                int width = Math.Max(400, area.Width - 16);
-                int height = Math.Max(400, area.Height - 16);
-                MinimumSize = new Size(Math.Min(580, width), Math.Min(470, height));
-                Size = new Size(Math.Min(Width, width), Math.Min(Height, height));
-                Location = new Point(area.Left + (area.Width - Width) / 2, area.Top + (area.Height - Height) / 2);
-            };
 
-            var shell = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4, Margin = Padding.Empty, Padding = Padding.Empty };
+            var shell = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Margin = Padding.Empty, Padding = Padding.Empty };
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+            foreach (int h in new[] { 34, 76 }) shell.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 104));
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 94));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
             Controls.Add(shell);
-            var titleBar = new ModernTitleBar(this, T("appName"), showMin: true, showMax: true);
-            shell.Controls.Add(titleBar, 0, 0);
-            var status = new DarkCardPanel { Dock = DockStyle.Fill, BorderRadius = 0, BackColor = Color.FromArgb(13, 23, 37) };
-            var statusRow = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(17, 5, 14, 5), ColumnCount = 2, RowCount = 1 };
-            statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112));
-            statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            statusRow.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            lblStatusTitle = new Label { Text = T("statusLabel"), Tag = "statusLabel", Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft, AutoEllipsis = true, ForeColor = accent, UseMnemonic = false,
-                Font = new Font("Segoe UI", 9f, FontStyle.Bold) };
-            statusLabel = new Label { Text = T("ready"), AutoEllipsis = true, UseMnemonic = false, ForeColor = Color.FromArgb(193, 215, 237),
-                Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
-            statusRow.Controls.Add(lblStatusTitle, 0, 0);
-            statusRow.Controls.Add(statusLabel, 1, 0);
-            status.Controls.Add(statusRow);
-            shell.Controls.Add(status, 0, 3);
+            shell.Controls.Add(new ModernTitleBar(this, HeaderText("appName"), showMin: true, showMax: false) { Dock = DockStyle.Fill }, 0, 0);
 
-            var content = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = BackColor, Padding = new Padding(16, 0, 16, 4) };
-            contentViewport = content;
-            shell.Controls.Add(content, 0, 1);
-            var stack = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false,
-                AutoScroll = false, Dock = DockStyle.Top, Padding = Padding.Empty, Margin = Padding.Empty };
-            content.Controls.Add(stack);
-            cardStack = stack;
-            content.Resize += (s, e) => {
-                int width = Math.Max(0, content.ClientSize.Width - content.Padding.Horizontal - 2);
-                stack.Width = width;
-                foreach (Control item in stack.Controls) item.Width = width;
-            };
-
-            var hero = new DarkCardPanel { Height = 82, Margin = new Padding(0, 9, 0, 9), Padding = new Padding(16, 7, 16, 7), BackColor = Color.FromArgb(19, 36, 58), BorderColor = Color.FromArgb(40, 75, 110) };
-            stack.Controls.Add(hero);
-            var heroGrid = Grid(66, 0, 218);
+            var hero = new DarkCardPanel { Dock = DockStyle.Fill, Margin = new Padding(14, 7, 14, 7), Padding = new Padding(15, 7, 15, 7),
+                BackColor = Color.FromArgb(19, 36, 56), BorderColor = Color.FromArgb(44, 76, 110) };
+            shell.Controls.Add(hero, 0, 1);
+            var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1 };
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 208));
             hero.Controls.Add(heroGrid);
-            var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1 };
+            var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
             heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 27));
-            heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 21));
-            heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
+            heroText.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             lblHeaderTitle = Label("heroTitle", true); lblHeaderTitle.Text = HeaderText("heroTitle"); lblHeaderTitle.Tag = null;
-            lblHeaderTitle.Font = new Font("Segoe UI", 14f, FontStyle.Bold);
+            lblHeaderTitle.Font = new Font("Segoe UI", 13f, FontStyle.Bold);
             lblHeaderSubtitle = Label("appDescription"); lblHeaderSubtitle.Text = HeaderText("appDescription"); lblHeaderSubtitle.Tag = null;
-            var chip = Label("heroHint"); chip.Text = HeaderText("heroHint"); chip.Tag = null; chip.ForeColor = accent;
-            heroText.Controls.Add(lblHeaderTitle, 0, 0); heroText.Controls.Add(lblHeaderSubtitle, 0, 1); heroText.Controls.Add(chip, 0, 2);
-            Place(heroGrid, heroText, 0);
-            var heroTools = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 2 };
-            heroTools.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); heroTools.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            heroTools.RowStyles.Add(new RowStyle(SizeType.Percent, 50)); heroTools.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(4) };
+            heroText.Controls.Add(lblHeaderTitle, 0, 0);
+            heroText.Controls.Add(lblHeaderSubtitle, 0, 1);
+            heroGrid.Controls.Add(heroText, 0, 0);
+            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2 };
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52));
+            heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(3, 0, 3, 1) };
             cboLanguage.Items.AddRange(new object[] { "EN", "VN", "CN" });
             cboLanguage.SelectedIndex = LanguageIndex();
             cboLanguage.SelectedIndexChanged += (s, e) => ChangeLanguage();
-            heroTools.Controls.Add(cboLanguage, 0, 0);
-            btnSettings = ActionButton("btnSettings", BtnSettings_Click); heroTools.Controls.Add(btnSettings, 1, 0);
-            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); heroTools.Controls.Add(btnCheckUpdate, 0, 1);
-            heroTools.SetColumnSpan(btnCheckUpdate, 2);
-            Place(heroGrid, heroTools, 1);
+            heroActions.Controls.Add(cboLanguage, 0, 0);
+            btnSettings = ActionButton("btnSettings", BtnSettings_Click); btnSettings.Margin = new Padding(3, 0, 0, 1);
+            heroActions.Controls.Add(btnSettings, 1, 0);
+            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(3, 2, 0, 0);
+            heroActions.Controls.Add(btnCheckUpdate, 0, 1); heroActions.SetColumnSpan(btnCheckUpdate, 2);
+            heroGrid.Controls.Add(heroActions, 1, 0);
 
-            var game = Card("gameLibrary", 110); stack.Controls.Add(game);
-            var gameBody = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1 };
-            gameBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
+            var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
+                Padding = new Padding(14, 0, 14, 0), Margin = Padding.Empty };
+            workspace.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            workspace.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            shell.Controls.Add(workspace, 0, 2);
+            var left = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(0, 0, 5, 0) };
+            left.RowStyles.Add(new RowStyle(SizeType.Absolute, 114));
+            left.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            workspace.Controls.Add(left, 0, 0);
+            var right = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = new Padding(5, 0, 0, 0) };
+            right.RowStyles.Add(new RowStyle(SizeType.Absolute, 139));
+            right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            workspace.Controls.Add(right, 1, 0);
+
+            var game = Section("gameLibrary", out var gameBody); game.Margin = new Padding(0, 0, 0, 8); left.Controls.Add(game, 0, 0);
+            gameBody.RowCount = 3;
+            gameBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 16));
             gameBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             gameBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            game.Controls.Add(gameBody); gameBody.BringToFront();
             gameBody.Controls.Add(Label("selectWar3Folder"), 0, 0);
-            var pathRow = Grid(34, 0, 90, 103);
+            var pathRow = Grid(34, 0, 85, 36);
             txtWar3Path = new ModernTextBox(); Place(pathRow, txtWar3Path, 0);
             txtWar3Path.InnerTextBox.Leave += (s, e) =>
             {
                 string selected = txtWar3Path.TextContent.Trim();
                 if (_launching || _activeGame != null || !File.Exists(Path.Combine(selected, "war3.exe"))) return;
                 if (selected.Equals(_config.GetSetting("War3Path"), StringComparison.OrdinalIgnoreCase)) return;
-                _config.SetSetting("War3Path", selected);
-                _config.SaveSettings();
-                LoadProfilesList(selected);
-                RefreshMaps();
+                _config.SetSetting("War3Path", selected); _config.SaveSettings();
+                LoadProfilesList(selected); RefreshMaps();
             };
             btnBrowse = ActionButton("browse", BtnBrowse_Click); Place(pathRow, btnBrowse, 1);
-            btnOpenFolder = ActionButton("btnOpenFolder", BtnOpenFolder_Click); Place(pathRow, btnOpenFolder, 2);
+            btnOpenFolder = ActionButton("btnOpenFolder", BtnOpenFolder_Click); btnOpenFolder.Text = "↗"; btnOpenFolder.Tag = "btnOpenFolder";
+            Place(pathRow, btnOpenFolder, 2);
             gameBody.Controls.Add(pathRow, 0, 1);
-            lblPathHint = Label("pathHint"); gameBody.Controls.Add(lblPathHint, 0, 2);
+            lblPathHint = Label("pathHintShort"); gameBody.Controls.Add(lblPathHint, 0, 2);
 
-            var saves = Card("mapSaveTitle", 144); saveCard = saves; stack.Controls.Add(saves);
-            saveBody = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 4, ColumnCount = 1 };
-            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18)); saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18)); saveBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            saves.Controls.Add(saveBody); saveBody.BringToFront();
+            var saves = Section("mapSaveTitle", out var saveBody); saves.Margin = Padding.Empty; left.Controls.Add(saves, 0, 1);
+            saveBody.RowCount = 5;
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            saveBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             saveBody.Controls.Add(Label("selectMap"), 0, 0);
-            var mapRow = Grid(32, 0, 112);
+            var mapRow = Grid(34, 0, 89);
             cboMaps = new ModernComboBox();
             cboMaps.DisplayText = item => item is MapEntry entry ?
                 entry.Name + "  ·  " + Path.GetFileName(Path.GetDirectoryName(entry.Path)) : item?.ToString() ?? "";
-            cboMaps.SelectedIndexChanged += (s, e) => {
-                RefreshSlots();
-                _mapTip.SetToolTip(cboMaps, (cboMaps.SelectedItem as MapEntry)?.Path ?? "");
+            cboMaps.SelectedIndexChanged += (s, e) =>
+            {
+                RefreshSlots(); _mapTip.SetToolTip(cboMaps, (cboMaps.SelectedItem as MapEntry)?.Path ?? "");
             };
             cboMaps.DropDown += (s, e) => cboMaps.DropDownWidth = Math.Min(
                 Screen.FromControl(cboMaps).WorkingArea.Width - 24, Math.Max(cboMaps.Width, LogicalToDeviceUnits(480)));
@@ -258,124 +233,112 @@ namespace Phanmemwar3.Forms
             btnBrowseMap = ActionButton("browseMap", BrowseMap); Place(mapRow, btnBrowseMap, 1);
             saveBody.Controls.Add(mapRow, 0, 1);
             saveBody.Controls.Add(Label("selectSlot"), 0, 2);
-            slotRow = Grid(34, 0, 80, 86, 82, 91);
-            cboSlots = new ModernComboBox(); Place(slotRow, cboSlots, 0);
-            btnNewSlot = ActionButton("newSlot", NewSlot); Place(slotRow, btnNewSlot, 1);
-            btnBackupSlot = ActionButton("backupSlot", BackupSlot); Place(slotRow, btnBackupSlot, 2);
-            btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot); Place(slotRow, btnDeleteSlot, 3);
-            btnRestoreSlot = ActionButton("restoreSlot", RestoreSlot); Place(slotRow, btnRestoreSlot, 4);
-            saveBody.Controls.Add(slotRow, 0, 3);
+            cboSlots = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
+            saveBody.Controls.Add(cboSlots, 0, 3);
+            var slotActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = new Padding(0, 4, 0, 0) };
+            slotActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            slotActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            btnNewSlot = ActionButton("newSlot", NewSlot); btnBackupSlot = ActionButton("backupSlot", BackupSlot);
+            btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot); btnRestoreSlot = ActionButton("restoreSlot", RestoreSlot);
+            foreach (var b in new[] { btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot }) b.Margin = new Padding(2, 2, 2, 2);
+            slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnBackupSlot, 1, 0);
+            slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnRestoreSlot, 1, 1);
+            saveBody.Controls.Add(slotActions, 0, 4);
 
-            var plugins = Card("pluginOptions", 142); stack.Controls.Add(plugins);
-            var pluginBody = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 4, ColumnCount = 1 };
-            pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18)); pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-            pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18)); pluginBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            plugins.Controls.Add(pluginBody); pluginBody.BringToFront();
+            var plugins = Section("pluginOptions", out var pluginBody); plugins.Margin = new Padding(0, 0, 0, 8); right.Controls.Add(plugins, 0, 0);
+            pluginBody.RowCount = 3;
+            pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            pluginBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            pluginBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             pluginBody.Controls.Add(Label("selectPlugin"), 0, 0);
-            var pluginRow = Grid(32, 0, 85, 104);
-            cboPlugins = new ModernComboBox(); cboPlugins.DisplayText = item => item is PluginProfile p ?
+            cboPlugins = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
+            cboPlugins.DisplayText = item => item is PluginProfile p ?
                 (p.IsClean ? T("cleanProfile") : p.IsInstalled ? T("installedProfile") : p.DisplayName + " (" +
                     T(p.Origin == "app" ? "appProfile" : p.Origin == "backup" ? "backupProfile" : "gameProfile") + ")") : item?.ToString() ?? "";
-            cboPlugins.SelectedIndexChanged += CboPlugins_SelectedIndexChanged; Place(pluginRow, cboPlugins, 0);
-            btnScanPlugins = ActionButton("scanPlugins", (s, e) => ScanPlugins()); Place(pluginRow, btnScanPlugins, 1);
-            btnConfigYDWE = ActionButton("btnConfig", BtnConfigYDWE_Click); Place(pluginRow, btnConfigYDWE, 2);
-            pluginBody.Controls.Add(pluginRow, 0, 1);
-            pluginBody.Controls.Add(Label("quickOptions"), 0, 2);
-            var optionRow = Grid(32, 0, 0, 108);
-            cboGraphic = new ModernComboBox(); cboGraphic.Items.AddRange(new object[] { T("openGL"), "DirectX" }); cboGraphic.SelectedIndex = 0; Place(optionRow, cboGraphic, 0);
-            cboDisplay = new ModernComboBox(); cboDisplay.Items.AddRange(new object[] { T("fullScreen"), T("borderless"), T("windowed") }); cboDisplay.SelectedIndex = 0; Place(optionRow, cboDisplay, 1);
-            cboInstances = new ModernComboBox(); cboInstances.Items.AddRange(new object[] { string.Format(T("instance"), 1) }); cboInstances.SelectedIndex = 0;
-            cboInstances.Enabled = false; Place(optionRow, cboInstances, 2);
-            new ToolTip().SetToolTip(cboInstances, T("instanceHint"));
-            pluginBody.Controls.Add(optionRow, 0, 3);
+            cboPlugins.SelectedIndexChanged += CboPlugins_SelectedIndexChanged;
+            pluginBody.Controls.Add(cboPlugins, 0, 1);
+            var pluginActions = Grid(34, 0, 0);
+            btnScanPlugins = ActionButton("scanPlugins", (s, e) => ScanPlugins()); Place(pluginActions, btnScanPlugins, 0);
+            btnConfigYDWE = ActionButton("btnConfig", BtnConfigYDWE_Click); Place(pluginActions, btnConfigYDWE, 1);
+            pluginBody.Controls.Add(pluginActions, 0, 2);
 
-            var play = Card("launchTitle", 86); playCard = play;
-            play.Margin = new Padding(16, 3, 16, 4);
-            play.BackColor = Color.FromArgb(19, 35, 53);
-            play.BorderColor = Color.FromArgb(42, 80, 117);
-            shell.Controls.Add(play, 0, 2);
-            play.Dock = DockStyle.Fill;
-            var playBody = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
-            playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
+            var options = Section("quickOptions", out var optionBody); options.Margin = Padding.Empty; right.Controls.Add(options, 0, 1);
+            optionBody.RowCount = 5;
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
+            optionBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            optionBody.Controls.Add(Label("graphicType"), 0, 0);
+            var graphicRow = Grid(35, 0, 104);
+            cboGraphic = new ModernComboBox(); cboGraphic.Items.AddRange(new object[] { T("openGL"), "DirectX" }); cboGraphic.SelectedIndex = 0;
+            Place(graphicRow, cboGraphic, 0);
+            cboInstances = new ModernComboBox(); cboInstances.Items.Add(string.Format(T("instance"), 1)); cboInstances.SelectedIndex = 0; cboInstances.Enabled = false;
+            Place(graphicRow, cboInstances, 1);
+            _actionTip.SetToolTip(cboInstances, T("instanceHint"));
+            optionBody.Controls.Add(graphicRow, 0, 1);
+            optionBody.Controls.Add(Label("displayMode"), 0, 2);
+            cboDisplay = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
+            cboDisplay.Items.AddRange(new object[] { T("fullScreen"), T("borderless"), T("windowed") }); cboDisplay.SelectedIndex = 0;
+            optionBody.Controls.Add(cboDisplay, 0, 3);
+            var settingsHint = Label("gameOptions"); settingsHint.ForeColor = accent;
+            optionBody.Controls.Add(settingsHint, 0, 4);
+
+            var play = Section("launchTitle", out var playBody); play.Margin = new Padding(14, 4, 14, 4);
+            play.Padding = new Padding(13, 4, 13, 4);
+            play.BackColor = Color.FromArgb(19, 35, 53); play.BorderColor = Color.FromArgb(43, 86, 126);
+            shell.Controls.Add(play, 0, 3);
+            playBody.RowCount = 2;
+            playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 37));
             playBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            play.Controls.Add(playBody); playBody.BringToFront();
-            playRow = Grid(38, 0, 142, 202);
+            var playRow = Grid(37, 0, 130, 186);
             chkMuteSaveValue = new ModernCheckBox { Text = T("muteShort"), Tag = "muteShort", Checked = true };
             Place(playRow, chkMuteSaveValue, 0);
             btnCloseGame = ActionButton("btnCloseGame", BtnCloseGame_Click); Place(playRow, btnCloseGame, 1);
-            btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 12f, FontStyle.Bold);
+            btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 11f, FontStyle.Bold);
             Place(playRow, btnRunGame, 2);
             playBody.Controls.Add(playRow, 0, 0);
-            lblServerInfo = Label("serverUnknown");
-            playBody.Controls.Add(lblServerInfo, 0, 1);
-            _actionTip.SetToolTip(chkMuteSaveValue, T("muteShort"));
+            lblServerInfo = Label("serverUnknown"); playBody.Controls.Add(lblServerInfo, 0, 1);
             _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
-            txtWar3Path.InnerTextBox.MouseEnter += (s, e) =>
-                _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
-
+            txtWar3Path.InnerTextBox.MouseEnter += (s, e) => _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
             UpdateActionTips();
+
+            var status = new DarkCardPanel { Dock = DockStyle.Fill, BorderRadius = 0, BackColor = Color.FromArgb(13, 23, 37) };
+            var statusRow = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16, 4, 12, 4), ColumnCount = 2, RowCount = 1 };
+            statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 112));
+            statusRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            lblStatusTitle = Label("statusLabel", true); lblStatusTitle.ForeColor = accent;
+            statusLabel = Label("ready"); statusLabel.Tag = null; statusLabel.ForeColor = Color.FromArgb(196, 216, 236);
+            statusRow.Controls.Add(lblStatusTitle, 0, 0); statusRow.Controls.Add(statusLabel, 1, 0);
+            status.Controls.Add(statusRow); shell.Controls.Add(status, 0, 4);
 
             AllowDrop = true;
             DragEnter += (s, e) => { if (!_launching && _activeGame == null && e.Data?.GetDataPresent(DataFormats.FileDrop) == true &&
                 ((string[])e.Data.GetData(DataFormats.FileDrop)!).Any(MapSaveManager.IsMap)) e.Effect = DragDropEffects.Copy; };
             DragDrop += (s, e) => { var files = e.Data?.GetData(DataFormats.FileDrop) as string[];
                 var map = files?.FirstOrDefault(MapSaveManager.IsMap); if (!_launching && _activeGame == null && map != null) SelectMap(map); };
-            stack.Width = ClientSize.Width - 36;
-            foreach (Control item in stack.Controls) item.Width = stack.Width;
-            stack.Height = stack.Controls.Cast<Control>().Sum(c => c.Height + c.Margin.Vertical) + 2;
-            content.Resize += (s, e) => UpdateResponsiveLayout();
-            UpdateResponsiveLayout();
+        }
+
+        private DarkCardPanel Section(string key, out TableLayoutPanel body)
+        {
+            var card = new DarkCardPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(13, 7, 13, 7),
+                BorderColor = Color.FromArgb(42, 62, 86) };
+            var frame = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
+            frame.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            frame.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
+            frame.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            frame.Controls.Add(Label(key, true), 0, 0);
+            body = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1 };
+            body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            frame.Controls.Add(body, 0, 1);
+            card.Controls.Add(frame);
+            return card;
         }
 
         private int LanguageIndex() => _config.GetSetting("Language", "EN").ToUpperInvariant() switch
         { "VN" => 1, "CN" => 2, _ => 0 };
-
-        private void UpdateResponsiveLayout()
-        {
-            if (updatingLayout || cardStack == null || slotRow == null) return;
-            updatingLayout = true;
-            try
-            {
-                int width = Math.Max(1, contentViewport.ClientSize.Width - contentViewport.Padding.Horizontal - 2);
-                bool compact = width < LogicalToDeviceUnits(700);
-                if (compact != compactLayout)
-                {
-                    cardStack.SuspendLayout();
-                    slotRow.SuspendLayout();
-                    compactLayout = compact;
-                    slotRow.RowCount = compact ? 2 : 1;
-                    slotRow.RowStyles.Clear();
-                    slotRow.RowStyles.Add(new RowStyle(SizeType.Percent, compact ? 50 : 100));
-                    if (compact) slotRow.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-                    if (compact)
-                    {
-                        slotRow.ColumnStyles[1].Width = LogicalToDeviceUnits(88);
-                        slotRow.ColumnStyles[2].Width = LogicalToDeviceUnits(100);
-                        slotRow.ColumnStyles[3].Width = 0;
-                        slotRow.ColumnStyles[4].Width = 0;
-                        slotRow.SetCellPosition(btnDeleteSlot, new TableLayoutPanelCellPosition(1, 1));
-                        slotRow.SetCellPosition(btnRestoreSlot, new TableLayoutPanelCellPosition(2, 1));
-                    }
-                    else
-                    {
-                        slotRow.ColumnStyles[1].Width = LogicalToDeviceUnits(80);
-                        slotRow.ColumnStyles[2].Width = LogicalToDeviceUnits(86);
-                        slotRow.ColumnStyles[3].Width = LogicalToDeviceUnits(82);
-                        slotRow.ColumnStyles[4].Width = LogicalToDeviceUnits(91);
-                        slotRow.SetCellPosition(btnDeleteSlot, new TableLayoutPanelCellPosition(3, 0));
-                        slotRow.SetCellPosition(btnRestoreSlot, new TableLayoutPanelCellPosition(4, 0));
-                    }
-                    slotRow.Height = LogicalToDeviceUnits(compact ? 72 : 34);
-                    saveCard.Height = LogicalToDeviceUnits(compact ? 182 : 144);
-                    slotRow.ResumeLayout(true);
-                    cardStack.ResumeLayout(true);
-                }
-                cardStack.Width = width;
-                foreach (Control item in cardStack.Controls) item.Width = width;
-                cardStack.Height = cardStack.Controls.Cast<Control>().Sum(c => c.Height + c.Margin.Vertical) + 2;
-            }
-            finally { updatingLayout = false; }
-        }
 
         private void ChangeLanguage()
         {
@@ -935,23 +898,5 @@ namespace Phanmemwar3.Forms
             }
         }
 
-        protected override void WndProc(ref Message m)
-        {
-            base.WndProc(ref m);
-            if (m.Msg != 0x0084 || WindowState != FormWindowState.Normal || m.Result != (IntPtr)1) return;
-            long point = m.LParam.ToInt64();
-            Point client = PointToClient(new Point(unchecked((short)point), unchecked((short)(point >> 16))));
-            int edge = LogicalToDeviceUnits(7);
-            bool left = client.X < edge, right = client.X >= ClientSize.Width - edge;
-            bool top = client.Y < edge, bottom = client.Y >= ClientSize.Height - edge;
-            if (top && left) m.Result = (IntPtr)13;
-            else if (top && right) m.Result = (IntPtr)14;
-            else if (bottom && left) m.Result = (IntPtr)16;
-            else if (bottom && right) m.Result = (IntPtr)17;
-            else if (left) m.Result = (IntPtr)10;
-            else if (right) m.Result = (IntPtr)11;
-            else if (top) m.Result = (IntPtr)12;
-            else if (bottom) m.Result = (IntPtr)15;
-        }
     }
 }
