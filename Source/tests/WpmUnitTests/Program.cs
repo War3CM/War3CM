@@ -302,7 +302,8 @@ namespace Phanmemwar3.Tests
                 "btnCheckUpdate", "btnGuide", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnRunGame", "statusLabel",
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry",
-                "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose"
+                "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose",
+                "tipDiscord", "tipYouTube"
             };
 
             bool allPresent = true;
@@ -394,6 +395,12 @@ namespace Phanmemwar3.Tests
                     Assert(guideBtn != null, "btnGuide exists in header actions");
                     Assert(!string.IsNullOrEmpty(guideBtn?.Text), "btnGuide has localized text");
                     Assert(guideBtn?.Height >= 28, "btnGuide height is >= 28px");
+
+                    // Check btnDiscord and btnYouTube exist in header actions
+                    var discordBtn = FindControl(mainForm, c => c.Tag as string == "btnDiscord") as Phanmemwar3.Forms.ModernButton;
+                    Assert(discordBtn != null && discordBtn.IconPainter != null, "btnDiscord exists in header with vector logo painter");
+                    var ytBtn = FindControl(mainForm, c => c.Tag as string == "btnYouTube") as Phanmemwar3.Forms.ModernButton;
+                    Assert(ytBtn != null && ytBtn.IconPainter != null, "btnYouTube exists in header with vector logo painter");
 
                     // Check AppIcons and Form icons
                     var appIcon = Phanmemwar3.Forms.AppIcons.GetAppIcon();

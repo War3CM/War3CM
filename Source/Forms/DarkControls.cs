@@ -40,6 +40,59 @@ namespace Phanmemwar3.Forms
             path.CloseFigure();
             return path;
         }
+
+        public static void DrawDiscordLogo(Graphics g, Rectangle bounds, bool isHovered)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            int w = 20;
+            int h = 15;
+            float x = bounds.X + (bounds.Width - w) / 2f;
+            float y = bounds.Y + (bounds.Height - h) / 2f;
+
+            Color iconColor = isHovered ? Color.White : Color.FromArgb(88, 101, 242);
+            using var brush = new SolidBrush(iconColor);
+
+            using var path = new GraphicsPath();
+            path.AddBezier(x + 2, y + 2, x + 6, y, x + 14, y, x + 18, y + 2);
+            path.AddBezier(x + 18, y + 2, x + 20, y + 5, x + 19, y + 11, x + 16, y + 14);
+            path.AddBezier(x + 16, y + 14, x + 14, y + 12.5f, x + 12, y + 13.5f, x + 11.5f, y + 13.5f);
+            path.AddBezier(x + 11.5f, y + 13.5f, x + 10.5f, y + 12.5f, x + 9.5f, y + 12.5f, x + 8.5f, y + 13.5f);
+            path.AddBezier(x + 8.5f, y + 13.5f, x + 8, y + 13.5f, x + 6, y + 12.5f, x + 4, y + 14);
+            path.AddBezier(x + 4, y + 14, x + 1, y + 11, x + 0, y + 5, x + 2, y + 2);
+            path.CloseFigure();
+            g.FillPath(brush, path);
+
+            Color eyeColor = isHovered ? Color.FromArgb(88, 101, 242) : Color.FromArgb(20, 30, 45);
+            using var eyeBrush = new SolidBrush(eyeColor);
+            g.FillEllipse(eyeBrush, x + 5f, y + 5.5f, 3.2f, 4f);
+            g.FillEllipse(eyeBrush, x + 11.8f, y + 5.5f, 3.2f, 4f);
+        }
+
+        public static void DrawYouTubeLogo(Graphics g, Rectangle bounds, bool isHovered)
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            int w = 22;
+            int h = 15;
+            float x = bounds.X + (bounds.Width - w) / 2f;
+            float y = bounds.Y + (bounds.Height - h) / 2f;
+
+            Color badgeColor = isHovered ? Color.White : Color.FromArgb(255, 0, 0);
+            Color playColor = isHovered ? Color.FromArgb(220, 20, 20) : Color.White;
+
+            using var badgeBrush = new SolidBrush(badgeColor);
+            using var playBrush = new SolidBrush(playColor);
+
+            using var path = GetRoundedRectangle(new Rectangle((int)x, (int)y, w, h), 4);
+            g.FillPath(badgeBrush, path);
+
+            PointF[] triangle = new PointF[]
+            {
+                new PointF(x + 8.5f, y + 4f),
+                new PointF(x + 15f, y + 7.5f),
+                new PointF(x + 8.5f, y + 11f)
+            };
+            g.FillPolygon(playBrush, triangle);
+        }
     }
 
     public class ModernTitleBar : Panel
@@ -185,6 +238,7 @@ namespace Phanmemwar3.Forms
         public Color? GradientEndColorHover { get; set; } = null;
         public Color BorderColor { get; set; } = Color.FromArgb(38, 55, 80);
         public Image? ButtonIcon { get; set; } = null;
+        public Action<Graphics, Rectangle, bool>? IconPainter { get; set; } = null;
 
         private bool _isHovered;
         private bool _isPressed;
@@ -269,6 +323,14 @@ namespace Phanmemwar3.Forms
             {
                 using var pen = new Pen(_isHovered ? Color.FromArgb(Math.Min(255, BorderColor.R + 40), Math.Min(255, BorderColor.G + 40), Math.Min(255, BorderColor.B + 40)) : BorderColor, 1);
                 e.Graphics.DrawPath(pen, path);
+            }
+
+            if (IconPainter != null)
+            {
+                IconPainter(e.Graphics, rect, _isHovered);
+                if (Focused && ShowFocusCues)
+                    ControlPaint.DrawFocusRectangle(e.Graphics, Rectangle.Inflate(rect, -4, -4), Color.White, c1);
+                return;
             }
 
             // Draw Icon + Text

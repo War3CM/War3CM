@@ -47,10 +47,15 @@ namespace Phanmemwar3.Forms
         private ModernButton btnConfigYDWE;
         private ModernButton btnCheckUpdate;
         private ModernButton btnGuide;
+        private ModernButton btnDiscord;
+        private ModernButton btnYouTube;
         private ModernButton btnInGameOptions;
         private Label statusLabel;
         private Label lblServerInfo;
         private string? _cachedServerVersion;
+
+        public const string DISCORD_URL = "https://discord.gg/wXtdt7PwpT";
+        public const string YOUTUBE_URL = "https://www.youtube.com/channel/UCw9col-g45AuA2Xhjwps7Lw/";
 
 
         public MainForm()
@@ -158,7 +163,7 @@ namespace Phanmemwar3.Forms
             shell.Controls.Add(hero, 0, 1);
             var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
             heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 370));
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 430));
             heroGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             hero.Controls.Add(heroGrid);
             var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty, Padding = Padding.Empty };
@@ -167,15 +172,17 @@ namespace Phanmemwar3.Forms
             lblHeaderTitle = Label("heroTitle", true); lblHeaderTitle.Margin = Padding.Empty;
             lblHeaderTitle.Font = new Font("Segoe UI", 12.5f, FontStyle.Bold);
             lblHeaderSubtitle = Label("appDescription"); lblHeaderSubtitle.Margin = Padding.Empty;
-            lblHeaderSubtitle.Font = new Font("Segoe UI", 8.75f);
+            lblHeaderSubtitle.Font = new Font("Segoe UI", 8.25f);
             lblHeaderSubtitle.ForeColor = Color.FromArgb(170, 195, 225);
             heroText.Controls.Add(lblHeaderTitle, 0, 0);
             heroText.Controls.Add(lblHeaderSubtitle, 0, 1);
             heroGrid.Controls.Add(heroText, 0, 0);
-            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 95));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 135));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
+            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 128));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 132));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 4, 9) };
             cboLanguage.Items.AddRange(new object[] { "EN", "VN", "CN" });
@@ -186,8 +193,34 @@ namespace Phanmemwar3.Forms
             btnGuide.Margin = new Padding(3, 9, 3, 9);
             heroActions.Controls.Add(btnGuide, 1, 0);
             btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click);
-            btnCheckUpdate.Margin = new Padding(3, 9, 0, 9);
+            btnCheckUpdate.Margin = new Padding(3, 9, 3, 9);
             heroActions.Controls.Add(btnCheckUpdate, 2, 0);
+            btnDiscord = new ModernButton
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(2, 9, 2, 9),
+                Tag = "btnDiscord",
+                BorderRadius = 6,
+                BorderColor = Color.FromArgb(48, 68, 95),
+                BackColorNormal = Color.FromArgb(28, 42, 60),
+                BackColorHover = Color.FromArgb(88, 101, 242),
+                IconPainter = GraphicsUtils.DrawDiscordLogo
+            };
+            btnDiscord.Click += (s, e) => OpenExternalLink(DISCORD_URL);
+            heroActions.Controls.Add(btnDiscord, 3, 0);
+            btnYouTube = new ModernButton
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(2, 9, 0, 9),
+                Tag = "btnYouTube",
+                BorderRadius = 6,
+                BorderColor = Color.FromArgb(48, 68, 95),
+                BackColorNormal = Color.FromArgb(28, 42, 60),
+                BackColorHover = Color.FromArgb(230, 33, 23),
+                IconPainter = GraphicsUtils.DrawYouTubeLogo
+            };
+            btnYouTube.Click += (s, e) => OpenExternalLink(YOUTUBE_URL);
+            heroActions.Controls.Add(btnYouTube, 4, 0);
             heroGrid.Controls.Add(heroActions, 1, 0);
 
             var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
@@ -384,6 +417,8 @@ namespace Phanmemwar3.Forms
                 btnConfigYDWE, btnCloseGame, btnRunGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
             _actionTip.SetToolTip(btnGuide, T("guideHint"));
+            _actionTip.SetToolTip(btnDiscord, T("tipDiscord"));
+            _actionTip.SetToolTip(btnYouTube, T("tipYouTube"));
             _actionTip.SetToolTip(btnInGameOptions, T("inGameOptionsHint"));
             _actionTip.SetToolTip(btnBrowseMap, T("browseMapHint"));
             _actionTip.SetToolTip(btnOpenFolder, T("openFolderHint"));
@@ -936,6 +971,15 @@ namespace Phanmemwar3.Forms
         {
             using var gf = new GuideForm(_config);
             gf.ShowDialog(this);
+        }
+
+        private static void OpenExternalLink(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch { }
         }
 
         protected override void Dispose(bool disposing)

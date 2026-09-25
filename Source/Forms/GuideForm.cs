@@ -10,6 +10,8 @@ namespace Phanmemwar3.Forms
     public class GuideForm : Form
     {
         public const string DRIVE_URL = "https://drive.google.com/drive/folders/1BbGpDIKfuIFfC2PXpDfE18QDmPQxarAQ?usp=sharing";
+        public const string DISCORD_URL = "https://discord.gg/wXtdt7PwpT";
+        public const string YOUTUBE_URL = "https://www.youtube.com/channel/UCw9col-g45AuA2Xhjwps7Lw/";
 
         private readonly ConfigManager _config;
         private string T(string key) => _config.GetText(key, _config.GetSetting("Language", "VN"));
@@ -138,15 +140,17 @@ namespace Phanmemwar3.Forms
             PopulateGuideCards(stack);
         }
 
-        private void OpenDriveUrl()
+        private void OpenDriveUrl() => OpenExternalUrl(DRIVE_URL);
+
+        private void OpenExternalUrl(string url)
         {
             try
             {
-                Process.Start(new ProcessStartInfo(DRIVE_URL) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, ex.Message + "\n\n" + DRIVE_URL, T("errorTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, ex.Message + "\n\n" + url, T("errorTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -251,6 +255,69 @@ namespace Phanmemwar3.Forms
             driveLayout.Controls.Add(driveActionRow);
             driveCard.Controls.Add(driveLayout);
             stack.Controls.Add(driveCard);
+
+            // 2. Community & Video Channel Card (Discord & YouTube)
+            var commCard = CreateCard(Color.FromArgb(20, 30, 48), Color.FromArgb(48, 80, 120), 12);
+            var commLayout = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1 };
+            var lblCommTitle = CreateStepHeader(lang switch
+            {
+                "CN" => "💬 加入官方社区与视频频道（Discord & YouTube）",
+                "EN" => "💬 Join Community & Video Channel (Discord & YouTube)",
+                _ => "💬 THAM GIA CỘNG ĐỒNG GIAO LƯU & HỖ TRỢ (DISCORD & YOUTUBE)"
+            }, Color.FromArgb(100, 190, 255));
+            var lblCommDesc = CreateBodyText(lang switch
+            {
+                "CN" => "欢迎加入我们活跃的魔兽RPG玩家社群，交流游戏心得、组队开黑并观看官方视频教程：",
+                "EN" => "Connect with our active Warcraft RPG community, share maps, find teammates, and watch tutorials:",
+                _ => "Tham gia cộng đồng để cùng giao lưu với các game thủ RPG, chia sẻ map mới, tìm đồng đội và xem video hướng dẫn:"
+            });
+
+            var commActionRow = new TableLayoutPanel { Dock = DockStyle.Top, Height = 38, ColumnCount = 2, Margin = new Padding(0, 8, 0, 4) };
+            commActionRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            commActionRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+
+            var btnCardDiscord = new ModernButton
+            {
+                Text = lang switch
+                {
+                    "CN" => "💬 加入 Discord 社区",
+                    "EN" => "💬 Join Discord Server",
+                    _ => "💬 Tham gia Discord Cộng đồng"
+                },
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 0, 6, 0),
+                BackColorNormal = Color.FromArgb(88, 101, 242),
+                BackColorHover = Color.FromArgb(114, 125, 245),
+                BorderColor = Color.FromArgb(114, 125, 245),
+                Font = new Font("Segoe UI", 9.25f, FontStyle.Bold)
+            };
+            btnCardDiscord.Click += (s, e) => OpenExternalUrl(DISCORD_URL);
+
+            var btnCardYouTube = new ModernButton
+            {
+                Text = lang switch
+                {
+                    "CN" => "▶ 访问 YouTube 频道",
+                    "EN" => "▶ Watch YouTube Channel",
+                    _ => "▶ Kênh YouTube Hướng dẫn"
+                },
+                Dock = DockStyle.Fill,
+                Margin = new Padding(6, 0, 0, 0),
+                BackColorNormal = Color.FromArgb(220, 30, 30),
+                BackColorHover = Color.FromArgb(255, 50, 50),
+                BorderColor = Color.FromArgb(255, 70, 70),
+                Font = new Font("Segoe UI", 9.25f, FontStyle.Bold)
+            };
+            btnCardYouTube.Click += (s, e) => OpenExternalUrl(YOUTUBE_URL);
+
+            commActionRow.Controls.Add(btnCardDiscord, 0, 0);
+            commActionRow.Controls.Add(btnCardYouTube, 1, 0);
+
+            commLayout.Controls.Add(lblCommTitle);
+            commLayout.Controls.Add(lblCommDesc);
+            commLayout.Controls.Add(commActionRow);
+            commCard.Controls.Add(commLayout);
+            stack.Controls.Add(commCard);
 
             // 3. CRITICAL WARNING: Map name length
             var warnCard = CreateCard(Color.FromArgb(36, 22, 14), Color.FromArgb(220, 115, 20), 12);
