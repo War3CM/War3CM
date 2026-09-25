@@ -97,9 +97,9 @@ namespace Phanmemwar3.Forms
 
     public class ModernTitleBar : Panel
     {
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", EntryPoint = "ReleaseCapture")]
         public static extern bool ReleaseCapture();
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", EntryPoint = "SendMessage")]
         public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
         public const int WM_NCLBUTTONDOWN = 0xA1;

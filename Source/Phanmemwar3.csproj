@@ -21,4 +21,23 @@
     <EmbeddedResource Include="WarcraftPlatformManager.ico" />
     <None Update="lang.ini;settings.ini;WarcraftPlatformManager.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Obfuscar" Version="2.2.50">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="ObfuscateRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <ObfuscarConfig>$(MSBuildProjectDirectory)\obfuscar.xml</ObfuscarConfig>
+    </PropertyGroup>
+    <Message Importance="high" Text="[Obfuscar] Obfuscating $(TargetDir)$(TargetFileName)..." />
+    <Exec Command="&quot;$(Obfuscar)&quot; &quot;$(ObfuscarConfig)&quot;" WorkingDirectory="$(TargetDir)" />
+    <Copy SourceFiles="$(TargetDir)Obfuscated\$(TargetFileName)" DestinationFiles="$(TargetDir)$(TargetFileName)" />
+    <Copy SourceFiles="$(TargetDir)Obfuscated\$(TargetFileName)" DestinationFiles="$(IntermediateOutputPath)$(TargetFileName)" />
+    <Message Importance="high" Text="[Obfuscar] Obfuscated assembly successfully deployed to bundle pipeline." />
+  </Target>
+
 </Project>
