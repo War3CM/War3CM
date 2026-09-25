@@ -39,7 +39,6 @@ namespace Phanmemwar3.Forms
         private Label lblPathHint;
         private ModernComboBox cboPlugins;
         private ModernComboBox cboGraphic;
-        private ModernComboBox cboInstances;
         private ModernComboBox cboDisplay;
         private ModernCheckBox chkMuteSaveValue;
         private ModernButton btnRunGame;
@@ -145,45 +144,46 @@ namespace Phanmemwar3.Forms
 
             var shell = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Margin = Padding.Empty, Padding = Padding.Empty };
             shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            foreach (int h in new[] { 34, 82 }) shell.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
+            foreach (int h in new[] { 34, 76 }) shell.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
             shell.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 108));
+            shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 118));
             shell.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             Controls.Add(shell);
             shell.Controls.Add(new ModernTitleBar(this, HeaderText("appName"), showMin: true, showMax: false) { Dock = DockStyle.Fill }, 0, 0);
 
-            var hero = new DarkCardPanel { Dock = DockStyle.Fill, Margin = new Padding(14, 6, 14, 6), Padding = new Padding(16, 6, 16, 6),
+            var hero = new DarkCardPanel { Dock = DockStyle.Fill, Margin = new Padding(14, 5, 14, 5), Padding = new Padding(16, 6, 16, 6),
                 BackColor = Color.FromArgb(19, 36, 56), BorderColor = Color.FromArgb(44, 76, 110) };
             shell.Controls.Add(hero, 0, 1);
-            var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1 };
+            var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
             heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 226));
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 290));
+            heroGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             hero.Controls.Add(heroGrid);
-            var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
-            heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty, Padding = Padding.Empty };
+            heroText.RowStyles.Add(new RowStyle(SizeType.Absolute, 27));
             heroText.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            lblHeaderTitle = Label("heroTitle", true); lblHeaderTitle.Text = HeaderText("heroTitle"); lblHeaderTitle.Tag = null;
-            lblHeaderTitle.Font = new Font("Segoe UI", 13f, FontStyle.Bold);
-            lblHeaderSubtitle = Label("appDescription"); lblHeaderSubtitle.Text = HeaderText("appDescription"); lblHeaderSubtitle.Tag = null;
-            lblHeaderSubtitle.Font = new Font("Segoe UI", 9f);
+            lblHeaderTitle = Label("heroTitle", true); lblHeaderTitle.Margin = Padding.Empty;
+            lblHeaderTitle.Font = new Font("Segoe UI", 12.5f, FontStyle.Bold);
+            lblHeaderSubtitle = Label("appDescription"); lblHeaderSubtitle.Margin = Padding.Empty;
+            lblHeaderSubtitle.Font = new Font("Segoe UI", 8.75f);
             lblHeaderSubtitle.ForeColor = Color.FromArgb(170, 195, 225);
             heroText.Controls.Add(lblHeaderTitle, 0, 0);
             heroText.Controls.Add(lblHeaderSubtitle, 0, 1);
             heroGrid.Controls.Add(heroText, 0, 0);
-            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2 };
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 54));
-            heroActions.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
-            heroActions.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(2, 1, 3, 2) };
+            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 66));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 104));
+            heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 4, 9) };
             cboLanguage.Items.AddRange(new object[] { "EN", "VN", "CN" });
             cboLanguage.SelectedIndex = LanguageIndex();
             cboLanguage.SelectedIndexChanged += (s, e) => ChangeLanguage();
             heroActions.Controls.Add(cboLanguage, 0, 0);
-            btnSettings = ActionButton("btnSettings", BtnSettings_Click); btnSettings.Margin = new Padding(3, 1, 0, 2);
-            heroActions.Controls.Add(btnSettings, 1, 0);
-            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(2, 2, 0, 0);
-            heroActions.Controls.Add(btnCheckUpdate, 0, 1); heroActions.SetColumnSpan(btnCheckUpdate, 2);
+            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(3, 9, 3, 9);
+            heroActions.Controls.Add(btnCheckUpdate, 1, 0);
+            btnSettings = ActionButton("btnSettings", BtnSettings_Click); btnSettings.Margin = new Padding(3, 9, 0, 9);
+            heroActions.Controls.Add(btnSettings, 2, 0);
             heroGrid.Controls.Add(heroActions, 1, 0);
 
             var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
@@ -290,13 +290,10 @@ namespace Phanmemwar3.Forms
             optionBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
             optionBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             optionBody.Controls.Add(Label("graphicType"), 0, 0);
-            var graphicRow = Grid(34, 0, 110);
-            cboGraphic = new ModernComboBox(); cboGraphic.Items.AddRange(new object[] { T("openGL"), "DirectX" }); cboGraphic.SelectedIndex = 0;
-            Place(graphicRow, cboGraphic, 0);
-            cboInstances = new ModernComboBox(); cboInstances.Items.Add(string.Format(T("instance"), 1)); cboInstances.SelectedIndex = 0; cboInstances.Enabled = false;
-            Place(graphicRow, cboInstances, 1);
-            _actionTip.SetToolTip(cboInstances, T("instanceHint"));
-            optionBody.Controls.Add(graphicRow, 0, 1);
+            cboGraphic = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
+            cboGraphic.Items.AddRange(new object[] { T("openGL"), "DirectX" });
+            cboGraphic.SelectedIndex = 0;
+            optionBody.Controls.Add(cboGraphic, 0, 1);
             optionBody.Controls.Add(Label("displayMode"), 0, 2);
             cboDisplay = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
             cboDisplay.Items.AddRange(new object[] { T("fullScreen"), T("borderless"), T("windowed") }); cboDisplay.SelectedIndex = 0;
@@ -320,7 +317,7 @@ namespace Phanmemwar3.Forms
             playBody.Controls.Add(playRow, 0, 0);
             lblServerInfo = Label("serverUnknown"); lblServerInfo.Tag = null;
             lblServerInfo.ForeColor = Color.FromArgb(170, 195, 225);
-            lblServerInfo.Margin = new Padding(2, 4, 0, 0);
+            lblServerInfo.Margin = new Padding(2, 2, 0, 0);
             playBody.Controls.Add(lblServerInfo, 0, 1);
             _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
             txtWar3Path.InnerTextBox.MouseEnter += (s, e) => _actionTip.SetToolTip(txtWar3Path.InnerTextBox, txtWar3Path.TextContent);
@@ -424,11 +421,6 @@ namespace Phanmemwar3.Forms
                 cboDisplay.SelectedIndex = 1; // Borderless
             else
                 cboDisplay.SelectedIndex = 0; // Full Screen
-
-            int instances = 1;
-            int.TryParse(_config.GetSetting("RunInstances", "1"), out instances);
-            if (instances >= 1 && instances <= 4)
-                cboInstances.SelectedIndex = instances - 1;
 
             chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";
 
@@ -769,7 +761,6 @@ namespace Phanmemwar3.Forms
             cboPlugins.Enabled = enabled;
             btnSettings.Enabled = enabled;
             cboSlots.Enabled = enabled;
-            cboInstances.Enabled = false;
             btnBrowseMap.Enabled = enabled;
             btnBrowse.Enabled = enabled;
             btnOpenFolder.Enabled = enabled;
@@ -905,7 +896,6 @@ namespace Phanmemwar3.Forms
             cboDisplay.Items[0] = T("fullScreen");
             cboDisplay.Items[1] = T("borderless");
             cboDisplay.Items[2] = T("windowed");
-            cboInstances.Items[0] = string.Format(T("instance"), 1);
             cboGraphic.SelectedIndex = graphic; cboDisplay.SelectedIndex = display;
             cboPlugins.Invalidate();
             UpdateActionTips();

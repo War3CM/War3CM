@@ -346,6 +346,40 @@ namespace Phanmemwar3.Tests
                     Assert(arrowBtn != null, "btnOpenFolder text is '↗'");
                     Assert(arrowBtn?.Tag == null, "btnOpenFolder.Tag is null (protects against '...' ellipsis overwrite)");
 
+                    System.Windows.Forms.Control? FindControl(System.Windows.Forms.Control parent, Func<System.Windows.Forms.Control, bool> predicate)
+                    {
+                        foreach (System.Windows.Forms.Control c in parent.Controls)
+                        {
+                            if (predicate(c)) return c;
+                            var found = FindControl(c, predicate);
+                            if (found != null) return found;
+                        }
+                        return null;
+                    }
+
+                    // Check btnCheckUpdate exists, is styled, and has valid bounds
+                    var updateBtn = FindControl(mainForm, c => c.Tag as string == "btnCheckUpdate");
+                    Assert(updateBtn != null, "btnCheckUpdate exists in header actions");
+                    Assert(!string.IsNullOrEmpty(updateBtn?.Text), "btnCheckUpdate has localized text");
+                    Assert(updateBtn?.Height >= 28, "btnCheckUpdate height is >= 28px (not vertically clipped)");
+
+                    // Check lblServerInfo in footer play card has ample height to prevent cut-off
+                    var serverLbl = FindControl(mainForm, c => c is System.Windows.Forms.Label l && (l.Text.Contains("KKWE") || l.Text.Contains("Check for updates") || l.Text.Contains("Sẵn sàng")));
+                    Assert(serverLbl != null, "lblServerInfo exists in play card");
+                    Assert(serverLbl?.Height >= 20, "lblServerInfo height is >= 20px (prevents half-line text cut-off)");
+
+                    // Check lblHeaderSubtitle is visible with ample height
+                    var subLbl = FindControl(mainForm, c => c is System.Windows.Forms.Label l && l.Tag as string == "appDescription");
+                    Assert(subLbl != null, "lblHeaderSubtitle exists in hero card");
+                    Assert(!string.IsNullOrEmpty(subLbl?.Text), "lblHeaderSubtitle has non-empty text");
+                    Assert(subLbl?.Height >= 18, "lblHeaderSubtitle height is >= 18px (not hidden or clipped)");
+
+                    // Check 1x instance combobox is removed and graphic dropdown has full width
+                    var instanceCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Count > 0 && cb.Items[0]?.ToString() == "1x");
+                    Assert(instanceCbo == null, "cboInstances ('1x') is removed from UI");
+                    var graphicCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("DirectX"));
+                    Assert(graphicCbo != null && graphicCbo.Width >= 300, "cboGraphic has full width >= 300px without squishing");
+
                     using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
                     Assert(settingsForm.ClientSize.Width == 510 && settingsForm.ClientSize.Height == 520, "SettingsForm fixed compact ClientSize is 510x520");
                     Assert(settingsForm.MinimumSize.Width == 510 && settingsForm.MinimumSize.Height == 520, "SettingsForm MinimumSize is 510x520");
