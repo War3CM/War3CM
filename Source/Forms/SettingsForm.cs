@@ -80,7 +80,7 @@ namespace Phanmemwar3.Forms
             content.Controls.Add(Field("gameOptions"), 0, 2);
             ModernCheckBox Check(string key, int row)
             {
-                var c = new ModernCheckBox { Text = T(key), Dock = DockStyle.Fill, Margin = new Padding(2, 2, 2, 2) };
+                var c = new ModernCheckBox { Text = T(key), Tag = key, Dock = DockStyle.Fill, Margin = new Padding(2, 2, 2, 2) };
                 content.Controls.Add(c, 0, row); return c;
             }
             chkMuteSaveValue = Check("muteSaveValue", 3);

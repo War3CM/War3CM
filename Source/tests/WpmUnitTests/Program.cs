@@ -299,7 +299,7 @@ namespace Phanmemwar3.Tests
                 "selectMap", "newSlot", "backupSlot", "deleteSlot", "restoreSlot",
                 "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
                 "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
-                "btnCheckUpdate", "btnInGameOptions", "muteShort", "btnCloseGame", "btnRunGame", "statusLabel",
+                "btnCheckUpdate", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnRunGame", "statusLabel",
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry"
             };
@@ -388,7 +388,17 @@ namespace Phanmemwar3.Tests
                     var inGameBtn = FindControl(mainForm, c => c.Tag as string == "btnInGameOptions");
                     Assert(inGameBtn != null && inGameBtn.Width >= 300, "btnInGameOptions exists in renderer card with width >= 300px");
 
+                    // Check duplicate mute checkbox is removed from MainForm
+                    var duplicateMuteChk = FindControl(mainForm, c => c is System.Windows.Forms.CheckBox && (c.Tag as string == "muteShort" || c.Tag as string == "muteSaveValue"));
+                    Assert(duplicateMuteChk == null, "Duplicate mute checkbox is removed from MainForm play card");
+
+                    // Check launchHint label exists in MainForm
+                    var launchHintLbl = FindControl(mainForm, c => c.Tag as string == "launchHint");
+                    Assert(launchHintLbl != null && !string.IsNullOrEmpty(launchHintLbl.Text), "lblLaunchHint exists in play card with localized text");
+
                     using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
+                    var settingsMuteChk = FindControl(settingsForm, c => c.Tag as string == "muteSaveValue");
+                    Assert(settingsMuteChk != null, "MuteSaveValue checkbox exists cleanly inside SettingsForm");
                     Assert(settingsForm.ClientSize.Width == 510 && settingsForm.ClientSize.Height == 480, "SettingsForm fixed compact ClientSize is 510x480");
                     Assert(settingsForm.MinimumSize.Width == 510 && settingsForm.MinimumSize.Height == 480, "SettingsForm MinimumSize is 510x480");
                     Assert(settingsForm.MaximumSize.Width == 510 && settingsForm.MaximumSize.Height == 480, "SettingsForm MaximumSize is 510x480");

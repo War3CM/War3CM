@@ -40,7 +40,7 @@ namespace Phanmemwar3.Forms
         private ModernComboBox cboPlugins;
         private ModernComboBox cboGraphic;
         private ModernComboBox cboDisplay;
-        private ModernCheckBox chkMuteSaveValue;
+        private Label lblLaunchHint;
         private ModernButton btnRunGame;
         private ModernButton btnCloseGame;
         private ModernButton btnOpenFolder;
@@ -309,8 +309,10 @@ namespace Phanmemwar3.Forms
             playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
             playBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             var playRow = Grid(42, 0, 140, 210);
-            chkMuteSaveValue = new ModernCheckBox { Text = T("muteShort"), Tag = "muteShort", Checked = true };
-            Place(playRow, chkMuteSaveValue, 0);
+            lblLaunchHint = Label("launchHint");
+            lblLaunchHint.ForeColor = Color.FromArgb(160, 185, 215);
+            lblLaunchHint.Font = new Font("Segoe UI", 9.25f);
+            Place(playRow, lblLaunchHint, 0);
             btnCloseGame = ActionButton("btnCloseGame", BtnCloseGame_Click); Place(playRow, btnCloseGame, 1);
             btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
             Place(playRow, btnRunGame, 2);
@@ -374,7 +376,6 @@ namespace Phanmemwar3.Forms
                 btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot, btnScanPlugins,
                 btnConfigYDWE, btnCloseGame, btnRunGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
-            _actionTip.SetToolTip(chkMuteSaveValue, T("tipMuteSaveValue"));
             _actionTip.SetToolTip(btnInGameOptions, T("inGameOptionsHint"));
             _actionTip.SetToolTip(btnBrowseMap, T("browseMapHint"));
             _actionTip.SetToolTip(btnOpenFolder, T("openFolderHint"));
@@ -422,8 +423,6 @@ namespace Phanmemwar3.Forms
                 cboDisplay.SelectedIndex = 1; // Borderless
             else
                 cboDisplay.SelectedIndex = 0; // Full Screen
-
-            chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";
 
             // Query KKWE version from server in background
             _ = Task.Run(async () =>
@@ -673,7 +672,6 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("GraphicType", graphic);
             _config.SetSetting("DisplayMode", display);
             _config.SetSetting("RunInstances", instances.ToString());
-            _config.SetSetting("MuteSaveValue", chkMuteSaveValue.Checked ? "1" : "0");
             _config.SaveSettings();
 
             var launchOpts = new LaunchOptions
@@ -688,7 +686,7 @@ namespace Phanmemwar3.Forms
                 FixRatio = _config.GetSetting("FixRatio", "1") == "1",
                 WideScreen = _config.GetSetting("WideScreen", "1") == "1",
                 FastLoad = _config.GetSetting("FastLoad", "1") == "1",
-                MuteSaveValue = chkMuteSaveValue.Checked,
+                MuteSaveValue = _config.GetSetting("MuteSaveValue", "1") == "1",
                 IsCleanProfile = profile?.IsClean ?? false,
                 IsInstalledProfile = profile?.IsInstalled ?? false
             };
@@ -919,7 +917,6 @@ namespace Phanmemwar3.Forms
             using var sf = new SettingsForm(_config);
             if (sf.ShowDialog(this) == DialogResult.OK)
             {
-                chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";
                 ApplyLanguage();
                 statusLabel.Text = T("settingsSaved");
                 statusLabel.ForeColor = Color.FromArgb(46, 204, 113);
