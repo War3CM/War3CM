@@ -15,6 +15,7 @@ namespace Phanmemwar3.Core
         public bool IsClean { get; set; } = false;
         public bool IsInstalled { get; set; } = false;
         public string Origin { get; set; } = "";
+        public string? DetectedVersion { get; set; } = null;
 
         public override string ToString() => DisplayName;
     }
@@ -34,6 +35,40 @@ namespace Phanmemwar3.Core
             Directory.CreateDirectory(_profilesDir);
         }
 
+        public static string? DetectPluginVersion(string? war3Dir)
+        {
+            if (string.IsNullOrWhiteSpace(war3Dir) || !Directory.Exists(war3Dir)) return null;
+            string weRoot = Path.Combine(war3Dir, "4_we_WorldEdit v1.2.9c", "WorldEdit v1.2.9C");
+            string[] candidateDlls = new[]
+            {
+                Path.Combine(war3Dir, "dz_w3_plugin.dll"),
+                Path.Combine(war3Dir, "kkapi_local_plugin.dll"),
+                Path.Combine(weRoot, "plugin", "warcraft3", "kkapi_local_plugin.dll"),
+                Path.Combine(weRoot, "plugin", "warcraft3", "dz_w3_plugin.dll")
+            };
+
+            foreach (var path in candidateDlls)
+            {
+                if (!File.Exists(path)) continue;
+                try
+                {
+                    var fileInfo = new FileInfo(path);
+                    long len = fileInfo.Length;
+                    if (len == 1853400) return "KKWE 2.0.12.2606";
+                    if (len == 1706944) return "KKWE 2.0.12.2485";
+                    if (len == 573432) return "Plugin 270";
+
+                    var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(path);
+                    if (!string.IsNullOrEmpty(ver.ProductVersion) && ver.ProductVersion != "0.0.0.0")
+                        return "KKWE " + ver.ProductVersion;
+                    if (!string.IsNullOrEmpty(ver.FileVersion) && ver.FileVersion != "0.0.0.0")
+                        return "KKWE " + ver.FileVersion;
+                }
+                catch { }
+            }
+            return null;
+        }
+
         public List<PluginProfile> GetAvailableProfiles(string war3Dir = null)
         {
             var list = new List<PluginProfile>
@@ -51,8 +86,22 @@ namespace Phanmemwar3.Core
                 new[] { "dz_w3_plugin.dll", "kkapi.dll", "kkapi_local_plugin.dll", "version.dll" }
                     .Any(name => File.Exists(Path.Combine(war3Dir, name)) ||
                         File.Exists(Path.Combine(weRoot, "plugin", "warcraft3", name))))
-                list.Add(new PluginProfile { Id = "INSTALLED", DisplayName = "Installed game plugins", IsInstalled = true,
-                    Origin = "game", SourcePath = war3Dir });
+            {
+                string? detectedVer = DetectPluginVersion(war3Dir);
+                string installedName = detectedVer != null
+                    ? $"Installed game plugins ({detectedVer})"
+                    : "Installed game plugins";
+
+                list.Add(new PluginProfile
+                {
+                    Id = "INSTALLED",
+                    DisplayName = installedName,
+                    IsInstalled = true,
+                    Origin = "game",
+                    SourcePath = war3Dir,
+                    DetectedVersion = detectedVer
+                });
+            }
 
             void AddProfiles(string parent, string origin)
             {

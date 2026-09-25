@@ -10,5 +10,6 @@
     <Compile Include="../../Core/**/*.cs" Link="Core/%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="../../Forms/**/*.cs" Link="Forms/%(RecursiveDir)%(Filename)%(Extension)" />
     <EmbeddedResource Include="../../lang.ini" Link="lang.ini" />
+    <None Include="../../lang.ini" Link="lang.ini" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

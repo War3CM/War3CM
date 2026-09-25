@@ -299,7 +299,7 @@ namespace Phanmemwar3.Tests
                 "selectMap", "newSlot", "backupSlot", "deleteSlot", "restoreSlot",
                 "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
                 "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
-                "btnCheckUpdate", "muteShort", "btnCloseGame", "btnRunGame", "statusLabel",
+                "btnCheckUpdate", "btnInGameOptions", "muteShort", "btnCloseGame", "btnRunGame", "statusLabel",
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry"
             };
@@ -380,10 +380,18 @@ namespace Phanmemwar3.Tests
                     var graphicCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("DirectX"));
                     Assert(graphicCbo != null && graphicCbo.Width >= 300, "cboGraphic has full width >= 300px without squishing");
 
+                    // Check cboLanguage width is >= 85px so text like EN/VN/CN is never clipped to a vertical bar
+                    var langCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("EN") && cb.Items.Contains("VN"));
+                    Assert(langCbo != null && langCbo.Width >= 85, "cboLanguage width is >= 85px (fully visible language code)");
+
+                    // Check btnInGameOptions exists in optionBody and has ample width
+                    var inGameBtn = FindControl(mainForm, c => c.Tag as string == "btnInGameOptions");
+                    Assert(inGameBtn != null && inGameBtn.Width >= 300, "btnInGameOptions exists in renderer card with width >= 300px");
+
                     using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
-                    Assert(settingsForm.ClientSize.Width == 510 && settingsForm.ClientSize.Height == 520, "SettingsForm fixed compact ClientSize is 510x520");
-                    Assert(settingsForm.MinimumSize.Width == 510 && settingsForm.MinimumSize.Height == 520, "SettingsForm MinimumSize is 510x520");
-                    Assert(settingsForm.MaximumSize.Width == 510 && settingsForm.MaximumSize.Height == 520, "SettingsForm MaximumSize is 510x520");
+                    Assert(settingsForm.ClientSize.Width == 510 && settingsForm.ClientSize.Height == 480, "SettingsForm fixed compact ClientSize is 510x480");
+                    Assert(settingsForm.MinimumSize.Width == 510 && settingsForm.MinimumSize.Height == 480, "SettingsForm MinimumSize is 510x480");
+                    Assert(settingsForm.MaximumSize.Width == 510 && settingsForm.MaximumSize.Height == 480, "SettingsForm MaximumSize is 510x480");
                 }
                 catch (Exception ex)
                 {

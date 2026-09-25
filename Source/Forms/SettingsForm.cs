@@ -18,10 +18,10 @@ namespace Phanmemwar3.Forms
         private ModernCheckBox chkFixRatio;
         private ModernCheckBox chkWideScreen;
         private ModernCheckBox chkFastLoad;
-        private ModernComboBox cboLanguage;
         private ModernButton btnSave;
         private ModernButton btnCancel;
         private ModernButton btnRestoreRegistry;
+        private readonly ToolTip _toolTip = new ToolTip { AutoPopDelay = 12000, InitialDelay = 250, ReshowDelay = 100, ShowAlways = true };
 
         public SettingsForm(ConfigManager config)
         {
@@ -35,9 +35,9 @@ namespace Phanmemwar3.Forms
         {
             Text = T("settingsTitle");
             FormBorderStyle = FormBorderStyle.None;
-            ClientSize = new Size(510, 520);
-            MinimumSize = new Size(510, 520);
-            MaximumSize = new Size(510, 520);
+            ClientSize = new Size(510, 480);
+            MinimumSize = new Size(510, 480);
+            MaximumSize = new Size(510, 480);
             StartPosition = FormStartPosition.CenterParent;
             BackColor = Color.FromArgb(12, 18, 29);
             ForeColor = Color.White;
@@ -67,9 +67,9 @@ namespace Phanmemwar3.Forms
 
             var scroller = new Panel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(18, 10, 18, 8) };
             shell.Controls.Add(scroller, 0, 1);
-            var content = new TableLayoutPanel { Dock = DockStyle.Top, Height = 376, ColumnCount = 1, RowCount = 11 };
+            var content = new TableLayoutPanel { Dock = DockStyle.Top, Height = 310, ColumnCount = 1, RowCount = 9 };
             content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            foreach (int h in new[] { 25, 36, 24, 36, 27, 32, 32, 32, 32, 32, 54 })
+            foreach (int h in new[] { 25, 36, 28, 32, 32, 32, 32, 32, 54 })
                 content.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
             scroller.Controls.Add(content);
             Label Field(string key) => new Label { Text = T(key), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft,
@@ -77,21 +77,17 @@ namespace Phanmemwar3.Forms
             content.Controls.Add(Field("userName"), 0, 0);
             txtUserName = new ModernTextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 6) };
             content.Controls.Add(txtUserName, 0, 1);
-            content.Controls.Add(Field("languageLabel"), 0, 2);
-            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 6) };
-            cboLanguage.Items.AddRange(new object[] { "EN - English", "VN - Tiếng Việt", "CN - 中文" });
-            content.Controls.Add(cboLanguage, 0, 3);
-            content.Controls.Add(Field("gameOptions"), 0, 4);
+            content.Controls.Add(Field("gameOptions"), 0, 2);
             ModernCheckBox Check(string key, int row)
             {
                 var c = new ModernCheckBox { Text = T(key), Dock = DockStyle.Fill, Margin = new Padding(2, 2, 2, 2) };
                 content.Controls.Add(c, 0, row); return c;
             }
-            chkMuteSaveValue = Check("muteSaveValue", 5);
-            chkLockMouse = Check("lockMouse", 6);
-            chkFixRatio = Check("fixRatio", 7);
-            chkWideScreen = Check("wideScreen", 8);
-            chkFastLoad = Check("fastLoad", 9);
+            chkMuteSaveValue = Check("muteSaveValue", 3);
+            chkLockMouse = Check("lockMouse", 4);
+            chkFixRatio = Check("fixRatio", 5);
+            chkWideScreen = Check("wideScreen", 6);
+            chkFastLoad = Check("fastLoad", 7);
             btnRestoreRegistry = new ModernButton { Text = T("restoreRegistry"), Dock = DockStyle.Fill,
                 Margin = new Padding(0, 10, 0, 8), Font = new Font("Segoe UI", 9f), BorderColor = Color.FromArgb(55, 75, 103) };
             btnRestoreRegistry.Click += (s, e) =>
@@ -105,7 +101,16 @@ namespace Phanmemwar3.Forms
                 RegistryHelper.SetWar3InstallPath(originalPath);
                 MessageBox.Show(this, string.Format(T("registryRestored"), originalPath), T("successTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
-            content.Controls.Add(btnRestoreRegistry, 0, 10);
+            content.Controls.Add(btnRestoreRegistry, 0, 8);
+
+            // Rich tooltips explaining in-game effect on hover
+            _toolTip.SetToolTip(txtUserName.InnerTextBox, T("tipUserName"));
+            _toolTip.SetToolTip(chkMuteSaveValue, T("tipMuteSaveValue"));
+            _toolTip.SetToolTip(chkLockMouse, T("tipLockMouse"));
+            _toolTip.SetToolTip(chkFixRatio, T("tipFixRatio"));
+            _toolTip.SetToolTip(chkWideScreen, T("tipWideScreen"));
+            _toolTip.SetToolTip(chkFastLoad, T("tipFastLoad"));
+            _toolTip.SetToolTip(btnRestoreRegistry, T("tipRestoreRegistry"));
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -123,9 +128,6 @@ namespace Phanmemwar3.Forms
             chkFixRatio.Checked = _config.GetSetting("FixRatio", "1") == "1";
             chkWideScreen.Checked = _config.GetSetting("WideScreen", "1") == "1";
             chkFastLoad.Checked = _config.GetSetting("FastLoad", "1") == "1";
-
-            string lang = _config.GetSetting("Language", "EN");
-            cboLanguage.SelectedIndex = lang.Equals("VN", StringComparison.OrdinalIgnoreCase) ? 1 : lang.Equals("CN", StringComparison.OrdinalIgnoreCase) ? 2 : 0;
         }
 
         private void BtnSave_Click(object? sender, EventArgs e)
@@ -136,11 +138,16 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("FixRatio", chkFixRatio.Checked ? "1" : "0");
             _config.SetSetting("WideScreen", chkWideScreen.Checked ? "1" : "0");
             _config.SetSetting("FastLoad", chkFastLoad.Checked ? "1" : "0");
-            _config.SetSetting("Language", cboLanguage.SelectedIndex == 1 ? "VN" : cboLanguage.SelectedIndex == 2 ? "CN" : "EN");
             _config.SaveSettings();
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _toolTip.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

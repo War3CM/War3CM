@@ -371,8 +371,11 @@ namespace Phanmemwar3.Forms
             }
 
             string text = DisplayText?.Invoke(this.Items[e.Index]) ?? this.Items[e.Index]?.ToString() ?? "";
-            var rect = new Rectangle(e.Bounds.X + 8, e.Bounds.Y + 1,
-                Math.Max(0, e.Bounds.Width - ((e.State & DrawItemState.ComboBoxEdit) != 0 ? 28 : 12)), e.Bounds.Height - 2);
+            bool isEdit = (e.State & DrawItemState.ComboBoxEdit) != 0;
+            int rightOffset = isEdit ? 24 : 10;
+            int leftOffset = isEdit ? 6 : 8;
+            var rect = new Rectangle(e.Bounds.X + leftOffset, e.Bounds.Y + 1,
+                Math.Max(0, e.Bounds.Width - rightOffset - leftOffset), e.Bounds.Height - 2);
             TextRenderer.DrawText(e.Graphics, text, Font, rect, Enabled ? ForeColor : Color.FromArgb(145, 161, 182),
                 TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis |
                 TextFormatFlags.NoPrefix | TextFormatFlags.Left);

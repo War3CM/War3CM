@@ -46,7 +46,7 @@ namespace Phanmemwar3.Forms
         private ModernButton btnOpenFolder;
         private ModernButton btnConfigYDWE;
         private ModernButton btnCheckUpdate;
-        private ModernButton btnSettings;
+        private ModernButton btnInGameOptions;
         private Label statusLabel;
         private Label lblServerInfo;
         private string? _cachedServerVersion;
@@ -156,7 +156,7 @@ namespace Phanmemwar3.Forms
             shell.Controls.Add(hero, 0, 1);
             var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
             heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 290));
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 240));
             heroGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             hero.Controls.Add(heroGrid);
             var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty, Padding = Padding.Empty };
@@ -170,20 +170,17 @@ namespace Phanmemwar3.Forms
             heroText.Controls.Add(lblHeaderTitle, 0, 0);
             heroText.Controls.Add(lblHeaderSubtitle, 0, 1);
             heroGrid.Controls.Add(heroText, 0, 0);
-            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 66));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 104));
+            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 95));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 145));
             heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 4, 9) };
+            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 6, 9) };
             cboLanguage.Items.AddRange(new object[] { "EN", "VN", "CN" });
             cboLanguage.SelectedIndex = LanguageIndex();
             cboLanguage.SelectedIndexChanged += (s, e) => ChangeLanguage();
             heroActions.Controls.Add(cboLanguage, 0, 0);
-            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(3, 9, 3, 9);
+            btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click); btnCheckUpdate.Margin = new Padding(2, 9, 0, 9);
             heroActions.Controls.Add(btnCheckUpdate, 1, 0);
-            btnSettings = ActionButton("btnSettings", BtnSettings_Click); btnSettings.Margin = new Padding(3, 9, 0, 9);
-            heroActions.Controls.Add(btnSettings, 2, 0);
             heroGrid.Controls.Add(heroActions, 1, 0);
 
             var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
@@ -273,8 +270,9 @@ namespace Phanmemwar3.Forms
             pluginBody.Controls.Add(Label("selectPlugin"), 0, 0);
             cboPlugins = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
             cboPlugins.DisplayText = item => item is PluginProfile p ?
-                (p.IsClean ? T("cleanProfile") : p.IsInstalled ? T("installedProfile") : p.DisplayName + " (" +
-                    T(p.Origin == "app" ? "appProfile" : p.Origin == "backup" ? "backupProfile" : "gameProfile") + ")") : item?.ToString() ?? "";
+                (p.IsClean ? T("cleanProfile") :
+                 p.IsInstalled ? (p.DetectedVersion != null ? $"{T("installedProfile")} ({p.DetectedVersion})" : T("installedProfile")) :
+                 p.DisplayName + " (" + T(p.Origin == "app" ? "appProfile" : p.Origin == "backup" ? "backupProfile" : "gameProfile") + ")") : item?.ToString() ?? "";
             cboPlugins.SelectedIndexChanged += CboPlugins_SelectedIndexChanged;
             pluginBody.Controls.Add(cboPlugins, 0, 1);
             var pluginActions = Grid(34, 0, 0);
@@ -298,8 +296,10 @@ namespace Phanmemwar3.Forms
             cboDisplay = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
             cboDisplay.Items.AddRange(new object[] { T("fullScreen"), T("borderless"), T("windowed") }); cboDisplay.SelectedIndex = 0;
             optionBody.Controls.Add(cboDisplay, 0, 3);
-            var settingsHint = Label("gameOptions"); settingsHint.ForeColor = accent;
-            optionBody.Controls.Add(settingsHint, 0, 4);
+            btnInGameOptions = ActionButton("btnInGameOptions", BtnSettings_Click);
+            btnInGameOptions.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            btnInGameOptions.Margin = new Padding(0, 6, 0, 2);
+            optionBody.Controls.Add(btnInGameOptions, 0, 4);
 
             var play = Section("launchTitle", out var playBody); play.Margin = new Padding(14, 5, 14, 5);
             play.Padding = new Padding(15, 6, 15, 6);
@@ -370,11 +370,12 @@ namespace Phanmemwar3.Forms
 
         private void UpdateActionTips()
         {
-            foreach (var button in new[] { btnBrowse, btnSettings, btnCheckUpdate, btnBrowseMap,
+            foreach (var button in new[] { btnBrowse, btnInGameOptions, btnCheckUpdate, btnBrowseMap,
                 btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot, btnScanPlugins,
                 btnConfigYDWE, btnCloseGame, btnRunGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
-            _actionTip.SetToolTip(chkMuteSaveValue, T("muteShort"));
+            _actionTip.SetToolTip(chkMuteSaveValue, T("tipMuteSaveValue"));
+            _actionTip.SetToolTip(btnInGameOptions, T("inGameOptionsHint"));
             _actionTip.SetToolTip(btnBrowseMap, T("browseMapHint"));
             _actionTip.SetToolTip(btnOpenFolder, T("openFolderHint"));
             _actionTip.SetToolTip(btnScanPlugins, T("scanPluginsHint"));
@@ -759,7 +760,7 @@ namespace Phanmemwar3.Forms
             btnConfigYDWE.Enabled = enabled;
             cboMaps.Enabled = enabled;
             cboPlugins.Enabled = enabled;
-            btnSettings.Enabled = enabled;
+            btnInGameOptions.Enabled = enabled;
             cboSlots.Enabled = enabled;
             btnBrowseMap.Enabled = enabled;
             btnBrowse.Enabled = enabled;
