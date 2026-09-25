@@ -12,6 +12,7 @@
     <AssemblyName>WarcraftPlatformManager</AssemblyName>
     <RootNamespace>Phanmemwar3</RootNamespace>
     <ApplicationIcon>WarcraftPlatformManager.ico</ApplicationIcon>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
