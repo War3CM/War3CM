@@ -74,13 +74,21 @@ namespace Phanmemwar3.Forms
             };
             iconBox.Paint += (s, e) =>
             {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using var b = new SolidBrush(Color.FromArgb(50, 160, 240));
-                // 4 squares icon
-                e.Graphics.FillRectangle(b, 0, 0, 6, 6);
-                e.Graphics.FillRectangle(b, 9, 0, 6, 6);
-                e.Graphics.FillRectangle(b, 0, 9, 6, 6);
-                e.Graphics.FillRectangle(b, 9, 9, 6, 6);
+                var icon = _parentForm.Icon ?? AppIcons.GetAppIcon();
+                if (icon != null)
+                {
+                    e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    e.Graphics.DrawIcon(icon, new Rectangle(0, 0, 16, 16));
+                }
+                else
+                {
+                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    using var b = new SolidBrush(Color.FromArgb(50, 160, 240));
+                    e.Graphics.FillRectangle(b, 0, 0, 6, 6);
+                    e.Graphics.FillRectangle(b, 9, 0, 6, 6);
+                    e.Graphics.FillRectangle(b, 0, 9, 6, 6);
+                    e.Graphics.FillRectangle(b, 9, 9, 6, 6);
+                }
             };
             this.Controls.Add(iconBox);
 

@@ -11,5 +11,7 @@
     <Compile Include="../../Forms/**/*.cs" Link="Forms/%(RecursiveDir)%(Filename)%(Extension)" />
     <EmbeddedResource Include="../../lang.ini" Link="lang.ini" />
     <None Include="../../lang.ini" Link="lang.ini" CopyToOutputDirectory="Always" />
+    <EmbeddedResource Include="../../WarcraftPlatformManager.ico" Link="WarcraftPlatformManager.ico" />
+    <None Include="../../WarcraftPlatformManager.ico" Link="WarcraftPlatformManager.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -299,9 +299,10 @@ namespace Phanmemwar3.Tests
                 "selectMap", "newSlot", "backupSlot", "deleteSlot", "restoreSlot",
                 "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
                 "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
-                "btnCheckUpdate", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnRunGame", "statusLabel",
+                "btnCheckUpdate", "btnGuide", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnRunGame", "statusLabel",
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
-                "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry"
+                "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry",
+                "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose"
             };
 
             bool allPresent = true;
@@ -316,7 +317,7 @@ namespace Phanmemwar3.Tests
                     }
                 }
             }
-            Assert(allPresent, "All 36 core UI keys are translated across VN, EN, CN");
+            Assert(allPresent, $"All {keys.Length} core UI keys are translated across VN, EN, CN");
 
             // 3. Test Form Instantiation & Compact Dimensions in STA thread
             Exception? staEx = null;
@@ -388,6 +389,17 @@ namespace Phanmemwar3.Tests
                     var inGameBtn = FindControl(mainForm, c => c.Tag as string == "btnInGameOptions");
                     Assert(inGameBtn != null && inGameBtn.Width >= 300, "btnInGameOptions exists in renderer card with width >= 300px");
 
+                    // Check btnGuide exists in header actions
+                    var guideBtn = FindControl(mainForm, c => c.Tag as string == "btnGuide");
+                    Assert(guideBtn != null, "btnGuide exists in header actions");
+                    Assert(!string.IsNullOrEmpty(guideBtn?.Text), "btnGuide has localized text");
+                    Assert(guideBtn?.Height >= 28, "btnGuide height is >= 28px");
+
+                    // Check AppIcons and Form icons
+                    var appIcon = Phanmemwar3.Forms.AppIcons.GetAppIcon();
+                    Assert(appIcon != null, "AppIcons.GetAppIcon() loads embedded/disk application icon");
+                    Assert(mainForm.Icon != null, "MainForm has valid non-null window/taskbar Icon");
+
                     // Check duplicate mute checkbox is removed from MainForm
                     var duplicateMuteChk = FindControl(mainForm, c => c is System.Windows.Forms.CheckBox && (c.Tag as string == "muteShort" || c.Tag as string == "muteSaveValue"));
                     Assert(duplicateMuteChk == null, "Duplicate mute checkbox is removed from MainForm play card");
@@ -395,6 +407,12 @@ namespace Phanmemwar3.Tests
                     // Check launchHint label exists in MainForm
                     var launchHintLbl = FindControl(mainForm, c => c.Tag as string == "launchHint");
                     Assert(launchHintLbl != null && !string.IsNullOrEmpty(launchHintLbl.Text), "lblLaunchHint exists in play card with localized text");
+
+                    using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
+                    Assert(guideForm.Icon != null, "GuideForm has valid window Icon");
+                    Assert(guideForm.ClientSize.Width == 720 && guideForm.ClientSize.Height == 680, "GuideForm fixed compact ClientSize is 720x680");
+                    Assert(guideForm.MinimumSize.Width == 720 && guideForm.MinimumSize.Height == 680, "GuideForm MinimumSize is 720x680");
+                    Assert(guideForm.MaximumSize.Width == 720 && guideForm.MaximumSize.Height == 680, "GuideForm MaximumSize is 720x680");
 
                     using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
                     var settingsMuteChk = FindControl(settingsForm, c => c.Tag as string == "muteSaveValue");

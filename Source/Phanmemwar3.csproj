@@ -11,11 +11,13 @@
     <StartupObject>Phanmemwar3.Program</StartupObject>
     <AssemblyName>WarcraftPlatformManager</AssemblyName>
     <RootNamespace>Phanmemwar3</RootNamespace>
+    <ApplicationIcon>WarcraftPlatformManager.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
     <EmbeddedResource Include="lang.ini" />
-    <None Update="lang.ini;settings.ini" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="WarcraftPlatformManager.ico" />
+    <None Update="lang.ini;settings.ini;WarcraftPlatformManager.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

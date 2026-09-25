@@ -27,6 +27,7 @@ namespace Phanmemwar3.Forms
         {
             _config = config;
             _appDir = AppDomain.CurrentDomain.BaseDirectory;
+            Icon = AppIcons.GetAppIcon();
             InitializeComponent();
             LoadData();
         }

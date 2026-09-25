@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Warcraft Platform Manager launcher icon">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#203B61"/>
+      <stop offset="0.52" stop-color="#132338"/>
+      <stop offset="1" stop-color="#0B1422"/>
+    </linearGradient>
+    <linearGradient id="rune" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A5E4FF"/>
+      <stop offset="0.48" stop-color="#4FB4FF"/>
+      <stop offset="1" stop-color="#2687ED"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="236" height="236" rx="49" fill="url(#base)"/>
+  <rect x="12.5" y="12.5" width="231" height="231" rx="47" fill="none" stroke="#4389CB" stroke-width="5"/>
+  <path d="M56 80 L81 177 L126 109 L171 177 L199 80" fill="none" stroke="#05203D" stroke-width="39" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M56 80 L81 177 L126 109 L171 177 L199 80" fill="none" stroke="url(#rune)" stroke-width="29" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M126 43 L137 55 L126 67 L115 55 Z" fill="#F3C66C"/>
+</svg>
