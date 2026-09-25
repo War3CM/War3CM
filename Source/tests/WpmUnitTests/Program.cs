@@ -382,9 +382,12 @@ namespace Phanmemwar3.Tests
                     var graphicCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("DirectX"));
                     Assert(graphicCbo != null && graphicCbo.Width >= 300, "cboGraphic has full width >= 300px without squishing");
 
-                    // Check cboLanguage width is >= 85px so text like EN/VN/CN is never clipped to a vertical bar
+                    // Check cboLanguage width is >= 88px so text like EN/VN/CN is never clipped to a vertical bar
                     var langCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("EN") && cb.Items.Contains("VN"));
-                    Assert(langCbo != null && langCbo.Width >= 85, "cboLanguage width is >= 85px (fully visible language code)");
+                    Assert(langCbo != null && langCbo.Width >= 88, "cboLanguage width is >= 88px (fully visible language code)");
+                    var actionTipField = typeof(Phanmemwar3.Forms.MainForm).GetField("_actionTip", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var actionTip = actionTipField?.GetValue(mainForm) as System.Windows.Forms.ToolTip;
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(langCbo!)), "cboLanguage has informative tooltip");
 
                     // Check btnInGameOptions exists in optionBody and has ample width
                     var inGameBtn = FindControl(mainForm, c => c.Tag as string == "btnInGameOptions");
@@ -395,6 +398,7 @@ namespace Phanmemwar3.Tests
                     Assert(guideBtn != null, "btnGuide exists in header actions");
                     Assert(!string.IsNullOrEmpty(guideBtn?.Text), "btnGuide has localized text");
                     Assert(guideBtn?.Height >= 28, "btnGuide height is >= 28px");
+                    Assert(guideBtn?.Width >= 140, "btnGuide width is >= 140px (prevents ellipsis on 📖 Hướng dẫn)");
 
                     // Check btnDiscord and btnYouTube exist in header actions
                     var discordBtn = FindControl(mainForm, c => c.Tag as string == "btnDiscord") as Phanmemwar3.Forms.ModernButton;

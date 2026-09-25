@@ -345,10 +345,10 @@ namespace Phanmemwar3.Forms
 
             var textRect = ButtonIcon != null
                 ? new Rectangle(textX, 0, this.Width - textX - 8, this.Height)
-                : new Rectangle(3, 0, Math.Max(0, this.Width - 6), this.Height);
+                : new Rectangle(2, 0, Math.Max(0, this.Width - 4), this.Height);
             if (textRect.Width > 0)
             {
-                var flags = TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix |
+                var flags = TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding |
                     (ButtonIcon == null ? TextFormatFlags.HorizontalCenter : TextFormatFlags.Left);
                 if (this.Width >= 55) flags |= TextFormatFlags.EndEllipsis;
                 TextRenderer.DrawText(e.Graphics, Text, Font, textRect,
@@ -442,13 +442,25 @@ namespace Phanmemwar3.Forms
 
             string text = DisplayText?.Invoke(this.Items[e.Index]) ?? this.Items[e.Index]?.ToString() ?? "";
             bool isEdit = (e.State & DrawItemState.ComboBoxEdit) != 0;
-            int rightOffset = isEdit ? 24 : 10;
-            int leftOffset = isEdit ? 6 : 8;
-            var rect = new Rectangle(e.Bounds.X + leftOffset, e.Bounds.Y + 1,
-                Math.Max(0, e.Bounds.Width - rightOffset - leftOffset), e.Bounds.Height - 2);
-            TextRenderer.DrawText(e.Graphics, text, Font, rect, Enabled ? ForeColor : Color.FromArgb(145, 161, 182),
-                TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis |
-                TextFormatFlags.NoPrefix | TextFormatFlags.Left);
+            Rectangle rect;
+            if (isEdit)
+            {
+                int textLeft = 7;
+                int textRight = Math.Max(textLeft, this.Width - 30);
+                rect = new Rectangle(textLeft, 0, textRight - textLeft, this.Height);
+            }
+            else
+            {
+                rect = new Rectangle(e.Bounds.X + 8, e.Bounds.Y, Math.Max(0, e.Bounds.Width - 12), e.Bounds.Height);
+            }
+
+            var flags = TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.Left;
+            if (text.Length > 4)
+            {
+                flags |= TextFormatFlags.EndEllipsis;
+            }
+
+            TextRenderer.DrawText(e.Graphics, text, Font, rect, Enabled ? ForeColor : Color.FromArgb(145, 161, 182), flags);
         }
 
         protected override void WndProc(ref Message m)
