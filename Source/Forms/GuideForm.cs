@@ -196,15 +196,21 @@ namespace Phanmemwar3.Forms
             var driveLayout = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1 };
             var lblStep1Title = CreateStepHeader(lang switch
             {
-                "CN" => "1. 下载纯净版游戏 (Warcraft_1.27.5_clean.zip) 与必备工具",
-                "EN" => "1. Download Clean Game (Warcraft_1.27.5_clean.zip) & Tools",
-                _ => "1. Tải bộ game chuẩn sạch (Warcraft_1.27.5_clean.zip) & Công cụ"
+                "CN" => "1. 下载纯净版 (Warcraft_1.27.5_clean.zip) 与运行库 (aio-runtimes_v2.4.9.exe)",
+                "EN" => "1. Download Clean Game (Warcraft_1.27.5_clean.zip) & Install aio-runtimes_v2.4.9.exe",
+                _ => "1. Tải Warcraft_1.27.5_clean.zip & Cài đặt aio-runtimes_v2.4.9.exe"
             }, Color.FromArgb(64, 180, 255));
             var lblStep1Desc = CreateBodyText(lang switch
             {
-                "CN" => "请从官方共享网盘下载完整纯净版 Warcraft_1.27.5_clean.zip 及所需配套工具：\n" + DRIVE_URL,
-                "EN" => "Download the official clean Warcraft_1.27.5_clean.zip package and essential utilities from Google Drive:\n" + DRIVE_URL,
-                _ => "Tải gói Warcraft_1.27.5_clean.zip nguyên bản và các công cụ hỗ trợ cần thiết tại Google Drive:\n" + DRIVE_URL
+                "CN" => "• 访问官方共享网盘，下载 Warcraft_1.27.5_clean.zip 以及必备运行库 aio-runtimes_v2.4.9.exe。\n" +
+                        "• 【重要步骤】：请先运行并安装 aio-runtimes_v2.4.9.exe，自动配置好 Visual C++ (2005-2022) 与 DirectX 9.0c 运行环境。彻底解决魔兽及 KKWE 插件启动时缺失 DLL (MSVCR/D3DX) 的报错问题。\n" +
+                        "• 网盘地址: " + DRIVE_URL,
+                "EN" => "• Download Warcraft_1.27.5_clean.zip and aio-runtimes_v2.4.9.exe from the Google Drive link below.\n" +
+                        "• IMPORTANT: Run and install aio-runtimes_v2.4.9.exe first to install all essential Visual C++ runtimes (2005-2022) and DirectX. This prevents missing DLL crashes when launching Warcraft or loading KKWE plugins.\n" +
+                        "• Google Drive: " + DRIVE_URL,
+                _ => "• Tải file Warcraft_1.27.5_clean.zip và bộ công cụ aio-runtimes_v2.4.9.exe tại Google Drive bên dưới.\n" +
+                     "• QUAN TRỌNG: Hãy chạy và cài đặt aio-runtimes_v2.4.9.exe trước để trang bị đầy đủ các gói Visual C++ (2005-2022) và DirectX. Bước này giúp máy tính không bao giờ bị lỗi thiếu file DLL khi khởi động game và nạp plugin KKWE.\n" +
+                     "• Link Google Drive: " + DRIVE_URL
             });
 
             var driveActionRow = new TableLayoutPanel { Dock = DockStyle.Top, Height = 38, ColumnCount = 2, Margin = new Padding(0, 8, 0, 4) };
