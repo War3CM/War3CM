@@ -450,11 +450,20 @@ namespace Phanmemwar3.Tests
                     // Check btnEnterWar3 and btnRunGame in play card
                     var enterWar3Btn = FindControl(mainForm, c => c.Tag as string == "btnEnterWar3") as Phanmemwar3.Forms.ModernButton;
                     Assert(enterWar3Btn != null, "btnEnterWar3 exists in play card");
-                    Assert(enterWar3Btn != null && !string.IsNullOrEmpty(enterWar3Btn.Text), "btnEnterWar3 has non-empty localized text");
+                    Assert(enterWar3Btn != null && enterWar3Btn.Text == "Play War3", "btnEnterWar3 displays exact button text 'Play War3'");
 
                     var runGameBtn = FindControl(mainForm, c => c.Tag as string == "btnRunGame") as Phanmemwar3.Forms.ModernButton;
                     Assert(runGameBtn != null, "btnRunGame exists in play card");
-                    Assert(runGameBtn != null && !string.IsNullOrEmpty(runGameBtn.Text), "btnRunGame has non-empty localized text");
+                    Assert(runGameBtn != null && runGameBtn.Text == "Play Map", "btnRunGame displays exact button text 'Play Map'");
+
+                    // Verify localized text in VN, EN, CN
+                    foreach (var lang in new[] { "VN", "EN", "CN" })
+                    {
+                        Assert(cfg.GetText("btnEnterWar3", lang) == "Play War3", $"btnEnterWar3 is 'Play War3' in [{lang}]");
+                        Assert(cfg.GetText("btnRunGame", lang) == "Play Map", $"btnRunGame is 'Play Map' in [{lang}]");
+                        Assert(!string.IsNullOrEmpty(cfg.GetText("tipEnterWar3", lang)), $"tipEnterWar3 tooltip is defined in [{lang}]");
+                        Assert(!string.IsNullOrEmpty(cfg.GetText("tipRunGame", lang)), $"tipRunGame tooltip is defined in [{lang}]");
+                    }
 
                     using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
                     Assert(guideForm.Icon != null, "GuideForm has valid window Icon");

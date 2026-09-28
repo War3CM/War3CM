@@ -21,7 +21,7 @@ namespace Phanmemwar3.Forms
         private Process? _activeGame;
         private bool _launching;
         private readonly ToolTip _mapTip = new ToolTip { AutoPopDelay = 15000, InitialDelay = 350, ReshowDelay = 150 };
-        private readonly ToolTip _actionTip = new ToolTip { AutoPopDelay = 12000 };
+        private readonly ToolTip _actionTip = new ToolTip { AutoPopDelay = 15000, InitialDelay = 200, ReshowDelay = 100, ShowAlways = true };
         private ModernComboBox cboMaps;
         private ModernComboBox cboSlots;
         private ModernButton btnNewSlot;
@@ -351,7 +351,7 @@ namespace Phanmemwar3.Forms
             playBody.RowCount = 2;
             playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
             playBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            var playRow = Grid(42, 0, 85, 145, 175);
+            var playRow = Grid(42, 0, 85, 140, 140);
             lblLaunchHint = Label("launchHint");
             lblLaunchHint.ForeColor = Color.FromArgb(160, 185, 215);
             lblLaunchHint.Font = new Font("Segoe UI", 9.25f);
@@ -362,9 +362,11 @@ namespace Phanmemwar3.Forms
             btnEnterWar3.BackColorNormal = Color.FromArgb(20, 82, 145);
             btnEnterWar3.BackColorHover = Color.FromArgb(32, 110, 185);
             btnEnterWar3.BorderColor = Color.FromArgb(48, 148, 255);
+            btnEnterWar3.MouseEnter += (s, e) => _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
             Place(playRow, btnEnterWar3, 2);
             btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true);
             btnRunGame.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
+            btnRunGame.MouseEnter += (s, e) => _actionTip.SetToolTip(btnRunGame, T("tipRunGame"));
             Place(playRow, btnRunGame, 3);
             playBody.Controls.Add(playRow, 0, 0);
             lblServerInfo = Label("serverUnknown"); lblServerInfo.Tag = null;
@@ -424,7 +426,7 @@ namespace Phanmemwar3.Forms
         {
             foreach (var button in new[] { btnBrowse, btnInGameOptions, btnGuide, btnCheckUpdate, btnBrowseMap,
                 btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot, btnScanPlugins,
-                btnConfigYDWE, btnCloseGame, btnEnterWar3, btnRunGame, btnOpenFolder })
+                btnConfigYDWE, btnCloseGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
             _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
             _actionTip.SetToolTip(btnRunGame, T("tipRunGame"));

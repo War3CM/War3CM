@@ -32,39 +32,42 @@ namespace Phanmemwar3.Core
         public void LoadLang()
         {
             _langData.Clear();
+            List<string>? embeddedLines = null;
+
+            // 1. Always preload baseline embedded lang.ini resource
+            try
+            {
+                var asm = typeof(ConfigManager).Assembly;
+                string resName = asm.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith("lang.ini", StringComparison.OrdinalIgnoreCase)) ?? "";
+                if (!string.IsNullOrEmpty(resName))
+                {
+                    using var stream = asm.GetManifestResourceStream(resName);
+                    if (stream != null)
+                    {
+                        embeddedLines = new List<string>();
+                        using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+                        {
+                            string? l;
+                            while ((l = reader.ReadLine()) != null) embeddedLines.Add(l);
+                        }
+                        ParseIniLines(embeddedLines, _langData);
+                    }
+                }
+            }
+            catch { }
+
+            // 2. If lang.ini exists on disk, overlay disk customizations
             if (File.Exists(_langPath))
             {
                 ParseIni(_langPath, _langData);
             }
-            else
+            else if (embeddedLines != null && embeddedLines.Count > 0)
             {
-                // Fallback to embedded lang.ini resource when running standalone EXE on a new machine
+                // Auto-extract lang.ini to disk so user can customize translations if needed
                 try
                 {
-                    var asm = typeof(ConfigManager).Assembly;
-                    string resName = asm.GetManifestResourceNames()
-                        .FirstOrDefault(n => n.EndsWith("lang.ini", StringComparison.OrdinalIgnoreCase)) ?? "";
-                    if (!string.IsNullOrEmpty(resName))
-                    {
-                        using var stream = asm.GetManifestResourceStream(resName);
-                        if (stream != null)
-                        {
-                            var lines = new List<string>();
-                            using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
-                            {
-                                string? l;
-                                while ((l = reader.ReadLine()) != null) lines.Add(l);
-                            }
-                            ParseIniLines(lines, _langData);
-
-                            // Auto-extract lang.ini to disk so user can customize translations if needed
-                            try
-                            {
-                                File.WriteAllLines(_langPath, lines, System.Text.Encoding.UTF8);
-                            }
-                            catch { }
-                        }
-                    }
+                    File.WriteAllLines(_langPath, embeddedLines, System.Text.Encoding.UTF8);
                 }
                 catch { }
             }
