@@ -139,5 +139,60 @@ namespace Phanmemwar3.Core
             }
             catch { }
         }
+        public static bool SetPlayerName(string playerName)
+        {
+            if (string.IsNullOrWhiteSpace(playerName))
+                return false;
+
+            string name = playerName.Trim();
+            if (name.Length > 15) name = name.Substring(0, 15);
+
+            bool ok = false;
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(HKCU_WAR3, true);
+                if (key != null)
+                {
+                    key.SetValue("Player Name", name, RegistryValueKind.String);
+                    ok = true;
+                }
+            }
+            catch { }
+
+            try
+            {
+                using var strKey = Registry.CurrentUser.CreateSubKey(HKCU_WAR3 + @"\String", true);
+                if (strKey != null)
+                {
+                    strKey.SetValue("userlocal", name, RegistryValueKind.String);
+                    strKey.SetValue("userbnet", name, RegistryValueKind.String);
+                    ok = true;
+                }
+            }
+            catch { }
+
+            return ok;
+        }
+
+        public static string? GetPlayerName()
+        {
+            try
+            {
+                using var strKey = Registry.CurrentUser.OpenSubKey(HKCU_WAR3 + @"\String");
+                var val = strKey?.GetValue("userlocal") as string;
+                if (!string.IsNullOrWhiteSpace(val)) return val.Trim();
+            }
+            catch { }
+
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(HKCU_WAR3);
+                var val = key?.GetValue("Player Name") as string;
+                if (!string.IsNullOrWhiteSpace(val)) return val.Trim();
+            }
+            catch { }
+
+            return null;
+        }
     }
 }

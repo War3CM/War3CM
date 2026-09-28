@@ -123,7 +123,7 @@ namespace Phanmemwar3.Forms
 
         private void LoadData()
         {
-            txtUserName.TextContent = _config.GetSetting("UserName", "MrP");
+            txtUserName.TextContent = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "MrP");
             chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";
             chkLockMouse.Checked = _config.GetSetting("LockMouse", "1") == "1";
             chkFixRatio.Checked = _config.GetSetting("FixRatio", "1") == "1";
@@ -133,7 +133,10 @@ namespace Phanmemwar3.Forms
 
         private void BtnSave_Click(object? sender, EventArgs e)
         {
-            _config.SetSetting("UserName", txtUserName.TextContent.Trim());
+            string userName = txtUserName.TextContent.Trim();
+            if (string.IsNullOrEmpty(userName)) userName = "MrP";
+            _config.SetSetting("UserName", userName);
+            RegistryHelper.SetPlayerName(userName);
             _config.SetSetting("MuteSaveValue", chkMuteSaveValue.Checked ? "1" : "0");
             _config.SetSetting("LockMouse", chkLockMouse.Checked ? "1" : "0");
             _config.SetSetting("FixRatio", chkFixRatio.Checked ? "1" : "0");

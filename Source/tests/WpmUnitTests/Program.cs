@@ -36,6 +36,7 @@ namespace Phanmemwar3.Tests
             Test_MapSaveManager_Deep();
             Test_PluginManager();
             Test_SaveValueMuter();
+            Test_PlayerNameRenamingAndRegistrySync();
             Test_CompactUILayoutAndLocalization();
 
             Console.WriteLine("==================================================");
@@ -278,9 +279,36 @@ namespace Phanmemwar3.Tests
             }
         }
 
+        static void Test_PlayerNameRenamingAndRegistrySync()
+        {
+            Console.WriteLine("\n[6] Testing Player Name Renaming & Registry Sync");
+            string? prevName = RegistryHelper.GetPlayerName();
+
+            try
+            {
+                // Test writing and reading player name
+                bool setOk = RegistryHelper.SetPlayerName("HeroKnight");
+                Assert(setOk, "RegistryHelper sets player name successfully");
+                Assert(RegistryHelper.GetPlayerName() == "HeroKnight", "RegistryHelper reads back player name correctly");
+
+                // Test safe length boundary (< 16 chars)
+                RegistryHelper.SetPlayerName("SuperLongPlayerNameExceeding15Chars");
+                string? clamped = RegistryHelper.GetPlayerName();
+                Assert(clamped != null && clamped.Length <= 15, "RegistryHelper limits player name length safely to <= 15 chars");
+
+                // Test memory patcher bounds check
+                bool invalidPidCheck = War3Launcher.PatchPlayerNameInMemory(-1, "SafeTest");
+                Assert(!invalidPidCheck, "War3Launcher.PatchPlayerNameInMemory safely rejects non-positive PID");
+            }
+            finally
+            {
+                RegistryHelper.SetPlayerName(string.IsNullOrEmpty(prevName) ? "MrP" : prevName);
+            }
+        }
+
         static void Test_CompactUILayoutAndLocalization()
         {
-            Console.WriteLine("\n[6] Testing Compact UI & Localization Integrity");
+            Console.WriteLine("\n[7] Testing Compact UI & Localization Integrity");
 
             // 1. Check pathHintShort in all 3 languages
             var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
@@ -299,11 +327,11 @@ namespace Phanmemwar3.Tests
                 "selectMap", "newSlot", "backupSlot", "deleteSlot", "restoreSlot",
                 "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
                 "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
-                "btnCheckUpdate", "btnGuide", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnRunGame", "statusLabel",
+                "btnCheckUpdate", "btnGuide", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnEnterWar3", "btnRunGame", "statusLabel",
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry",
                 "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose",
-                "tipDiscord", "tipYouTube"
+                "tipDiscord", "tipYouTube", "tipEnterWar3", "tipRunGame"
             };
 
             bool allPresent = true;
@@ -418,6 +446,15 @@ namespace Phanmemwar3.Tests
                     // Check launchHint label exists in MainForm
                     var launchHintLbl = FindControl(mainForm, c => c.Tag as string == "launchHint");
                     Assert(launchHintLbl != null && !string.IsNullOrEmpty(launchHintLbl.Text), "lblLaunchHint exists in play card with localized text");
+
+                    // Check btnEnterWar3 and btnRunGame in play card
+                    var enterWar3Btn = FindControl(mainForm, c => c.Tag as string == "btnEnterWar3") as Phanmemwar3.Forms.ModernButton;
+                    Assert(enterWar3Btn != null, "btnEnterWar3 exists in play card");
+                    Assert(enterWar3Btn != null && !string.IsNullOrEmpty(enterWar3Btn.Text), "btnEnterWar3 has non-empty localized text");
+
+                    var runGameBtn = FindControl(mainForm, c => c.Tag as string == "btnRunGame") as Phanmemwar3.Forms.ModernButton;
+                    Assert(runGameBtn != null, "btnRunGame exists in play card");
+                    Assert(runGameBtn != null && !string.IsNullOrEmpty(runGameBtn.Text), "btnRunGame has non-empty localized text");
 
                     using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
                     Assert(guideForm.Icon != null, "GuideForm has valid window Icon");

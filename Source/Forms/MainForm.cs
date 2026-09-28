@@ -42,6 +42,7 @@ namespace Phanmemwar3.Forms
         private ModernComboBox cboDisplay;
         private Label lblLaunchHint;
         private ModernButton btnRunGame;
+        private ModernButton btnEnterWar3;
         private ModernButton btnCloseGame;
         private ModernButton btnOpenFolder;
         private ModernButton btnConfigYDWE;
@@ -350,14 +351,21 @@ namespace Phanmemwar3.Forms
             playBody.RowCount = 2;
             playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
             playBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            var playRow = Grid(42, 0, 140, 210);
+            var playRow = Grid(42, 0, 85, 145, 175);
             lblLaunchHint = Label("launchHint");
             lblLaunchHint.ForeColor = Color.FromArgb(160, 185, 215);
             lblLaunchHint.Font = new Font("Segoe UI", 9.25f);
             Place(playRow, lblLaunchHint, 0);
             btnCloseGame = ActionButton("btnCloseGame", BtnCloseGame_Click); Place(playRow, btnCloseGame, 1);
-            btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true); btnRunGame.Font = new Font("Segoe UI", 11.5f, FontStyle.Bold);
-            Place(playRow, btnRunGame, 2);
+            btnEnterWar3 = ActionButton("btnEnterWar3", BtnEnterWar3_Click);
+            btnEnterWar3.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
+            btnEnterWar3.BackColorNormal = Color.FromArgb(20, 82, 145);
+            btnEnterWar3.BackColorHover = Color.FromArgb(32, 110, 185);
+            btnEnterWar3.BorderColor = Color.FromArgb(48, 148, 255);
+            Place(playRow, btnEnterWar3, 2);
+            btnRunGame = ActionButton("btnRunGame", BtnRunGame_Click, true);
+            btnRunGame.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
+            Place(playRow, btnRunGame, 3);
             playBody.Controls.Add(playRow, 0, 0);
             lblServerInfo = Label("serverUnknown"); lblServerInfo.Tag = null;
             lblServerInfo.ForeColor = Color.FromArgb(170, 195, 225);
@@ -416,8 +424,10 @@ namespace Phanmemwar3.Forms
         {
             foreach (var button in new[] { btnBrowse, btnInGameOptions, btnGuide, btnCheckUpdate, btnBrowseMap,
                 btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot, btnScanPlugins,
-                btnConfigYDWE, btnCloseGame, btnRunGame, btnOpenFolder })
+                btnConfigYDWE, btnCloseGame, btnEnterWar3, btnRunGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
+            _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
+            _actionTip.SetToolTip(btnRunGame, T("tipRunGame"));
             _actionTip.SetToolTip(btnGuide, T("guideHint"));
             _actionTip.SetToolTip(cboLanguage, T("languageLabel"));
             _actionTip.SetToolTip(btnDiscord, T("tipDiscord"));
@@ -677,6 +687,115 @@ namespace Phanmemwar3.Forms
             catch (Exception ex) { MessageBox.Show(this, ex.Message, T("errorTitle")); }
         }
 
+        private async void BtnEnterWar3_Click(object? sender, EventArgs e)
+        {
+            string war3Dir = txtWar3Path.TextContent.Trim();
+            if (!Directory.Exists(war3Dir) || !File.Exists(Path.Combine(war3Dir, "war3.exe")))
+            {
+                MessageBox.Show(this, T("invalidFolder"), T("errorTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (_launching || _activeGame != null) { MessageBox.Show(this, T("sessionBusy"), T("noticeTitle")); return; }
+            if (Process.GetProcessesByName("war3").Any())
+            { MessageBox.Show(this, T("sessionBusy"), T("noticeTitle")); return; }
+
+            var profile = cboPlugins.SelectedItem as PluginProfile;
+
+            string graphic = cboGraphic.SelectedIndex == 1 ? "DirectX" : "OpenGL";
+            string display = cboDisplay.SelectedIndex switch
+            {
+                1 => "Borderless Windowed",
+                2 => "Window",
+                _ => "Full Screen"
+            };
+
+            _config.SetSetting("War3Path", war3Dir);
+            _config.SetSetting("GraphicType", graphic);
+            _config.SetSetting("DisplayMode", display);
+            _config.SaveSettings();
+
+            string userName = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "MrP");
+            RegistryHelper.SetPlayerName(userName);
+
+            var launchOpts = new LaunchOptions
+            {
+                War3Path = war3Dir,
+                MapPath = "", // Enters main menu without loading map
+                GraphicType = graphic,
+                DisplayMode = display,
+                Instances = 1,
+                UserName = userName,
+                LockMouse = _config.GetSetting("LockMouse", "1") == "1",
+                FixRatio = _config.GetSetting("FixRatio", "1") == "1",
+                WideScreen = _config.GetSetting("WideScreen", "1") == "1",
+                FastLoad = _config.GetSetting("FastLoad", "1") == "1",
+                MuteSaveValue = _config.GetSetting("MuteSaveValue", "1") == "1",
+                IsCleanProfile = profile?.IsClean ?? false,
+                IsInstalledProfile = profile?.IsInstalled ?? false
+            };
+
+            Process? startedGame = null;
+            bool profileApplied = false;
+            _launching = true;
+            SetSessionControlsEnabled(false);
+            statusLabel.Text = T("launching");
+            try
+            {
+                if (profile != null && !profile.IsInstalled &&
+                    !await Task.Run(() => _pluginManager.ApplyProfile(war3Dir, profile)))
+                    throw new IOException(T("pluginFailed"));
+                profileApplied = profile != null && !profile.IsInstalled;
+
+                bool ok = await Task.Run(() => War3Launcher.Launch(launchOpts, null,
+                    process => startedGame = process));
+                if (!ok || startedGame == null) throw new IOException(T("launchFailed"));
+                _activeGame = startedGame;
+            }
+            catch (Exception ex)
+            {
+                string recovery = "";
+                if (profileApplied && !Process.GetProcessesByName("war3").Any())
+                {
+                    try { await Task.Run(() => _pluginManager.UndoLastRootSwitch(war3Dir)); }
+                    catch (Exception restoreError) { recovery = "\n" + string.Format(T("pluginRestoreFailed"), restoreError.Message); }
+                }
+                _activeGame = null;
+                MessageBox.Show(this, ex.Message + recovery, T("errorTitle"));
+                SetSessionControlsEnabled(true);
+                statusLabel.Text = T("ready");
+                _launching = false;
+                return;
+            }
+            finally
+            {
+                _launching = false;
+            }
+
+            statusLabel.Text = string.Format(T("gameRunning"), startedGame.Id);
+            if (_activeGame != null)
+            {
+                var game = _activeGame;
+                _ = Task.Run(async () =>
+                {
+                    try { await game.WaitForExitAsync(); } catch { }
+                    if (profileApplied)
+                    {
+                        try { _pluginManager.UndoLastRootSwitch(war3Dir); } catch { }
+                    }
+                    if (!IsDisposed)
+                    {
+                        BeginInvoke(new Action(() =>
+                        {
+                            _activeGame = null;
+                            SetSessionControlsEnabled(true);
+                            statusLabel.Text = T("ready");
+                        }));
+                    }
+                });
+            }
+        }
+
         private async void BtnRunGame_Click(object? sender, EventArgs e)
         {
             string war3Dir = txtWar3Path.TextContent.Trim();
@@ -720,6 +839,9 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("RunInstances", instances.ToString());
             _config.SaveSettings();
 
+            string userName = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "MrP");
+            RegistryHelper.SetPlayerName(userName);
+
             var launchOpts = new LaunchOptions
             {
                 War3Path = war3Dir,
@@ -727,7 +849,7 @@ namespace Phanmemwar3.Forms
                 GraphicType = graphic,
                 DisplayMode = display,
                 Instances = instances,
-                UserName = _config.GetSetting("UserName", "MrP"),
+                UserName = userName,
                 LockMouse = _config.GetSetting("LockMouse", "1") == "1",
                 FixRatio = _config.GetSetting("FixRatio", "1") == "1",
                 WideScreen = _config.GetSetting("WideScreen", "1") == "1",
@@ -796,6 +918,7 @@ namespace Phanmemwar3.Forms
         private void SetSessionControlsEnabled(bool enabled)
         {
             btnRunGame.Enabled = enabled;
+            btnEnterWar3.Enabled = enabled;
             btnNewSlot.Enabled = enabled;
             btnBackupSlot.Enabled = enabled && cboSlots.Items.Count > 0;
             btnDeleteSlot.Enabled = enabled && cboSlots.Items.Count > 0;

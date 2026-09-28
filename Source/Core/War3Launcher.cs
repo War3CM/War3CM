@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace Phanmemwar3.Core
 {
@@ -36,10 +37,11 @@ namespace Phanmemwar3.Core
                 return false;
             }
 
-            // Always ensure Registry is updated: InstallPath & Allow Local Files
+            // Always ensure Registry is updated: InstallPath, Allow Local Files & Player Name
             RegistryHelper.SetWar3InstallPath(options.War3Path);
             RegistryHelper.SetAllowLocalFiles(true);
             RegistryHelper.SetHighDpiAware(options.War3Path);
+            RegistryHelper.SetPlayerName(options.UserName);
 
             // Mute / Unmute Save Value on disk directly before launch
             // An installed profile belongs to the player. Apply mute in memory after launch
@@ -100,6 +102,7 @@ namespace Phanmemwar3.Core
                         if (game == null) Thread.Sleep(200);
                     }
                     if (game == null) return false;
+                    PatchPlayerNameInMemory(game.Id, options.UserName);
                     onStarted?.Invoke(game);
                 }
                 else
@@ -143,6 +146,7 @@ namespace Phanmemwar3.Core
                     };
                     var started = Process.Start(psi);
                     if (started == null) return false;
+                    PatchPlayerNameInMemory(started.Id, options.UserName);
                     onStarted?.Invoke(started);
                 }
             }
@@ -278,6 +282,69 @@ namespace Phanmemwar3.Core
                 }
             }
             catch { }
+        }
+
+        [DllImport("kernel32.dll", EntryPoint = "OpenProcess", SetLastError = true)]
+        private static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+
+        [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
+        [DllImport("kernel32.dll", EntryPoint = "WriteProcessMemory", SetLastError = true)]
+        private static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", EntryPoint = "VirtualProtectEx", SetLastError = true)]
+        private static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress, UIntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
+
+        public static bool PatchPlayerNameInMemory(int pid, string newName)
+        {
+            if (string.IsNullOrWhiteSpace(newName) || pid <= 0) return false;
+            string safeName = newName.Trim();
+            if (safeName.Length > 11) safeName = safeName.Substring(0, 11);
+
+            byte[] nameBytes = new byte[12];
+            Encoding.ASCII.GetBytes(safeName, 0, safeName.Length, nameBytes, 0);
+
+            try
+            {
+                using var proc = Process.GetProcessById(pid);
+                IntPtr gameBase = IntPtr.Zero;
+                try
+                {
+                    foreach (ProcessModule mod in proc.Modules)
+                    {
+                        if (string.Equals(mod.ModuleName, "Game.dll", StringComparison.OrdinalIgnoreCase))
+                        {
+                            gameBase = mod.BaseAddress;
+                            break;
+                        }
+                    }
+                }
+                catch { }
+
+                if (gameBase == IntPtr.Zero)
+                    gameBase = new IntPtr(0x6F000000);
+
+                IntPtr targetAddr = IntPtr.Add(gameBase, 0x00A54A14);
+                IntPtr hProcess = OpenProcess(0x1F0FFF, false, pid);
+                if (hProcess == IntPtr.Zero) return false;
+
+                try
+                {
+                    if (VirtualProtectEx(hProcess, targetAddr, (UIntPtr)nameBytes.Length, 0x40 /* PAGE_EXECUTE_READWRITE */, out uint oldProtect))
+                    {
+                        bool written = WriteProcessMemory(hProcess, targetAddr, nameBytes, nameBytes.Length, out _);
+                        VirtualProtectEx(hProcess, targetAddr, (UIntPtr)nameBytes.Length, oldProtect, out _);
+                        return written;
+                    }
+                }
+                finally
+                {
+                    CloseHandle(hProcess);
+                }
+            }
+            catch { }
+            return false;
         }
     }
 }
