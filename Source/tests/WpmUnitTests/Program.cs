@@ -436,7 +436,8 @@ namespace Phanmemwar3.Tests
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry",
                 "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose",
-                "tipDiscord", "tipYouTube", "tipEnterWar3", "tipRunGame"
+                "tipDiscord", "tipYouTube", "tipEnterWar3", "tipRunGame",
+                "setMapLevel", "tipSetLevel", "btnRank1", "tipRank1", "invalidLevel", "setLevelSuccess", "rank1Enabled", "rank1Disabled"
             };
 
             bool allPresent = true;
@@ -569,6 +570,30 @@ namespace Phanmemwar3.Tests
                         Assert(!string.IsNullOrEmpty(cfg.GetText("tipEnterWar3", lang)), $"tipEnterWar3 tooltip is defined in [{lang}]");
                         Assert(!string.IsNullOrEmpty(cfg.GetText("tipRunGame", lang)), $"tipRunGame tooltip is defined in [{lang}]");
                     }
+
+                    // Check Map Level and Rank 1 row 3 controls
+                    var setLevelBtn = FindControl(mainForm, c => c.Tag as string == "setMapLevel") as Phanmemwar3.Forms.ModernButton;
+                    Assert(setLevelBtn != null, "btnSetLevel exists in slot actions");
+                    Assert(!string.IsNullOrEmpty(setLevelBtn?.Text), "btnSetLevel has localized text");
+
+                    var rank1Btn = FindControl(mainForm, c => c.Tag as string == "btnRank1") as Phanmemwar3.Forms.ModernButton;
+                    Assert(rank1Btn != null, "btnRank1 exists in slot actions");
+                    Assert(rank1Btn?.Text.Contains("Rank 1") == true, "btnRank1 displays Rank 1 text");
+
+                    var mapLevelTxt = FindControl(mainForm, c => c is Phanmemwar3.Forms.ModernTextBox mt && mt.InnerTextBox.MaxLength == 3) as Phanmemwar3.Forms.ModernTextBox;
+                    Assert(mapLevelTxt != null, "txtMapLevel exists with MaxLength=3");
+                    Assert(mapLevelTxt?.InnerTextBox.TextAlign == System.Windows.Forms.HorizontalAlignment.Center, "txtMapLevel is center-aligned");
+
+                    var slotGrid = setLevelBtn?.Parent?.Parent as System.Windows.Forms.TableLayoutPanel;
+                    Assert(slotGrid != null && slotGrid.RowCount == 3, "slotActions grid has RowCount == 3");
+
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(setLevelBtn!)), "btnSetLevel has informative tooltip");
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(rank1Btn!)), "btnRank1 has informative tooltip");
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(mapLevelTxt!)), "txtMapLevel has informative tooltip");
+
+                    Assert(!setLevelBtn!.Enabled, "btnSetLevel disabled when no slot is selected");
+                    Assert(!rank1Btn!.Enabled, "btnRank1 disabled when no slot is selected");
+                    Assert(!mapLevelTxt!.Enabled, "txtMapLevel disabled when no slot is selected");
 
                     using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
                     Assert(guideForm.Icon != null, "GuideForm has valid window Icon");

@@ -28,6 +28,10 @@ namespace Phanmemwar3.Forms
         private ModernButton btnBackupSlot;
         private ModernButton btnDeleteSlot;
         private ModernButton btnRestoreSlot;
+        private ModernTextBox txtMapLevel;
+        private ModernButton btnSetLevel;
+        private ModernButton btnRank1;
+        private bool _isRank1Active;
         private ModernButton btnBrowseMap;
         private ModernButton btnScanPlugins;
         private string T(string key) => _config.GetText(key, _config.GetSetting("Language", "EN"));
@@ -285,12 +289,14 @@ namespace Phanmemwar3.Forms
             saveBody.Controls.Add(mapRow, 0, 1);
             saveBody.Controls.Add(Label("selectSlot"), 0, 2);
             cboSlots = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
+            cboSlots.SelectedIndexChanged += (s, e) => UpdateSlotLevelAndRank();
             saveBody.Controls.Add(cboSlots, 0, 3);
-            var slotActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = new Padding(0, 4, 0, 0) };
+            var slotActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 3, Margin = new Padding(0, 4, 0, 0) };
             slotActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             slotActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 33.33f));
+            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 33.33f));
+            slotActions.RowStyles.Add(new RowStyle(SizeType.Percent, 33.34f));
             btnNewSlot = ActionButton("newSlot", NewSlot);
             btnNewSlot.BackColorNormal = Color.FromArgb(28, 52, 82); btnNewSlot.BackColorHover = Color.FromArgb(42, 78, 120);
             btnNewSlot.BorderColor = Color.FromArgb(50, 110, 180);
@@ -303,6 +309,63 @@ namespace Phanmemwar3.Forms
             foreach (var b in new[] { btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot }) b.Margin = new Padding(2, 2, 2, 2);
             slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnBackupSlot, 1, 0);
             slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnRestoreSlot, 1, 1);
+
+            var pnlLevelGroup = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = new Padding(2, 2, 2, 2),
+                Padding = Padding.Empty
+            };
+            pnlLevelGroup.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60));
+            pnlLevelGroup.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            pnlLevelGroup.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            txtMapLevel = new ModernTextBox
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 0, 4, 0),
+                Padding = new Padding(3, 5, 3, 5),
+                Enabled = false
+            };
+            txtMapLevel.InnerTextBox.TextAlign = HorizontalAlignment.Center;
+            txtMapLevel.InnerTextBox.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            txtMapLevel.InnerTextBox.MaxLength = 3;
+            txtMapLevel.InnerTextBox.Enabled = false;
+            txtMapLevel.InnerTextBox.KeyPress += (s, e) =>
+            {
+                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    e.Handled = true;
+            };
+            txtMapLevel.InnerTextBox.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.SuppressKeyPress = true;
+                    btnSetLevel.PerformClick();
+                }
+            };
+
+            btnSetLevel = ActionButton("setMapLevel", BtnSetLevel_Click);
+            btnSetLevel.Margin = Padding.Empty;
+            btnSetLevel.BackColorNormal = Color.FromArgb(28, 52, 82);
+            btnSetLevel.BackColorHover = Color.FromArgb(42, 78, 120);
+            btnSetLevel.BorderColor = Color.FromArgb(50, 110, 180);
+            btnSetLevel.Enabled = false;
+
+            pnlLevelGroup.Controls.Add(txtMapLevel, 0, 0);
+            pnlLevelGroup.Controls.Add(btnSetLevel, 1, 0);
+            slotActions.Controls.Add(pnlLevelGroup, 0, 2);
+
+            btnRank1 = ActionButton("btnRank1", BtnRank1_Click);
+            btnRank1.Margin = new Padding(2, 2, 2, 2);
+            btnRank1.BackColorNormal = Color.FromArgb(28, 52, 82);
+            btnRank1.BackColorHover = Color.FromArgb(42, 78, 120);
+            btnRank1.BorderColor = Color.FromArgb(50, 110, 180);
+            btnRank1.Enabled = false;
+            slotActions.Controls.Add(btnRank1, 1, 2);
+
             saveBody.Controls.Add(slotActions, 0, 4);
 
             var plugins = Section("pluginOptions", out var pluginBody); plugins.Margin = new Padding(0, 0, 0, 8); right.Controls.Add(plugins, 0, 0);
@@ -441,6 +504,13 @@ namespace Phanmemwar3.Forms
             _actionTip.SetToolTip(btnRestoreSlot, T("restoreSlotHint"));
             _actionTip.SetToolTip(btnDeleteSlot, T("deleteSlotHint"));
             _actionTip.SetToolTip(btnConfigYDWE, T("ydweSettingsHint"));
+            if (btnSetLevel != null) _actionTip.SetToolTip(btnSetLevel, T("tipSetLevel"));
+            if (btnRank1 != null) _actionTip.SetToolTip(btnRank1, T("tipRank1"));
+            if (txtMapLevel != null)
+            {
+                _actionTip.SetToolTip(txtMapLevel, T("tipSetLevel"));
+                _actionTip.SetToolTip(txtMapLevel.InnerTextBox, T("tipSetLevel"));
+            }
             if (cboPlugins.SelectedItem is PluginProfile profile)
             {
                 string loader = Path.Combine(txtWar3Path.TextContent.Trim(), "4_we_WorldEdit v1.2.9c", "WorldEdit v1.2.9C", "bin", "YDWEConfig.exe");
@@ -621,6 +691,7 @@ namespace Phanmemwar3.Forms
             {
                 btnDeleteSlot.Enabled = false;
                 btnRestoreSlot.Enabled = false;
+                UpdateSlotLevelAndRank();
                 return;
             }
             _config.SetSetting("LastMapPath", map.Path);
@@ -633,10 +704,19 @@ namespace Phanmemwar3.Forms
                 btnDeleteSlot.Enabled = false;
                 btnBackupSlot.Enabled = false;
                 btnRestoreSlot.Enabled = false;
+                UpdateSlotLevelAndRank();
                 return;
             }
             foreach (var slot in slots) cboSlots.Items.Add(slot);
-            if (slots.Count > 0) cboSlots.SelectedItem = slots.FirstOrDefault(x => x.Path == select) ?? slots[0];
+            if (slots.Count > 0)
+            {
+                cboSlots.SelectedItem = slots.FirstOrDefault(x => x.Path == select) ?? slots[0];
+                UpdateSlotLevelAndRank();
+            }
+            else
+            {
+                UpdateSlotLevelAndRank();
+            }
             btnDeleteSlot.Enabled = slots.Count > 0;
             btnBackupSlot.Enabled = slots.Count > 0;
             btnRestoreSlot.Enabled = _mapSaves.HasDeleted(map);
@@ -687,6 +767,105 @@ namespace Phanmemwar3.Forms
                 statusLabel.Text = T("slotRestored");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.Message, T("errorTitle")); }
+        }
+
+        private void UpdateRank1Appearance()
+        {
+            btnRank1.BorderColor = _isRank1Active ? Color.FromArgb(240, 180, 40) : Color.FromArgb(50, 110, 180);
+            btnRank1.BackColorNormal = _isRank1Active ? Color.FromArgb(38, 48, 62) : Color.FromArgb(28, 52, 82);
+            btnRank1.Invalidate();
+        }
+
+        private void UpdateSlotLevelAndRank()
+        {
+            if (cboSlots.SelectedItem is SaveSlot slot && File.Exists(slot.Path))
+            {
+                int level = MapSaveManager.ReadMapLevel(slot.Path, 100);
+                txtMapLevel.TextContent = level.ToString();
+                _isRank1Active = MapSaveManager.ReadMapLevelRank(slot.Path);
+                UpdateRank1Appearance();
+                txtMapLevel.Enabled = true;
+                txtMapLevel.InnerTextBox.Enabled = true;
+                btnSetLevel.Enabled = true;
+                btnRank1.Enabled = true;
+            }
+            else
+            {
+                txtMapLevel.TextContent = "";
+                _isRank1Active = false;
+                UpdateRank1Appearance();
+                txtMapLevel.Enabled = false;
+                txtMapLevel.InnerTextBox.Enabled = false;
+                btnSetLevel.Enabled = false;
+                btnRank1.Enabled = false;
+            }
+        }
+
+        private void BtnSetLevel_Click(object? sender, EventArgs e)
+        {
+            if (cboSlots.SelectedItem is not SaveSlot slot || !File.Exists(slot.Path)) return;
+            if (!int.TryParse(txtMapLevel.TextContent.Trim(), out int val))
+            {
+                statusLabel.Text = T("invalidLevel");
+                return;
+            }
+            val = Math.Clamp(val, 1, 100);
+            txtMapLevel.TextContent = val.ToString();
+
+            try
+            {
+                MapSaveManager.WriteMapLevel(slot.Path, val);
+
+                string war3Dir = txtWar3Path.TextContent.Trim();
+                if (!string.IsNullOrEmpty(war3Dir) && Directory.Exists(war3Dir))
+                {
+                    string gameIni = Path.Combine(war3Dir, "dz_w3_plugin.ini");
+                    bool isGameRunning = _activeGame != null || Process.GetProcessesByName("war3").Length > 0;
+                    if (isGameRunning || File.Exists(gameIni))
+                    {
+                        try { MapSaveManager.WriteMapLevel(gameIni, val); }
+                        catch { }
+                    }
+                }
+
+                statusLabel.Text = string.Format(T("setLevelSuccess"), val);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, T("errorTitle"));
+            }
+        }
+
+        private void BtnRank1_Click(object? sender, EventArgs e)
+        {
+            if (cboSlots.SelectedItem is not SaveSlot slot || !File.Exists(slot.Path)) return;
+            _isRank1Active = !_isRank1Active;
+            UpdateRank1Appearance();
+
+            try
+            {
+                MapSaveManager.WriteMapLevelRank(slot.Path, _isRank1Active);
+
+                string war3Dir = txtWar3Path.TextContent.Trim();
+                if (!string.IsNullOrEmpty(war3Dir) && Directory.Exists(war3Dir))
+                {
+                    string gameIni = Path.Combine(war3Dir, "dz_w3_plugin.ini");
+                    bool isGameRunning = _activeGame != null || Process.GetProcessesByName("war3").Length > 0;
+                    if (isGameRunning || File.Exists(gameIni))
+                    {
+                        try { MapSaveManager.WriteMapLevelRank(gameIni, _isRank1Active); }
+                        catch { }
+                    }
+                }
+
+                statusLabel.Text = T(_isRank1Active ? "rank1Enabled" : "rank1Disabled");
+            }
+            catch (Exception ex)
+            {
+                _isRank1Active = !_isRank1Active;
+                UpdateRank1Appearance();
+                MessageBox.Show(this, ex.Message, T("errorTitle"));
+            }
         }
 
         private async void BtnEnterWar3_Click(object? sender, EventArgs e)
@@ -931,6 +1110,11 @@ namespace Phanmemwar3.Forms
             cboPlugins.Enabled = enabled;
             btnInGameOptions.Enabled = enabled;
             cboSlots.Enabled = enabled;
+            bool hasSlot = cboSlots.SelectedItem is SaveSlot;
+            txtMapLevel.Enabled = hasSlot;
+            txtMapLevel.InnerTextBox.Enabled = hasSlot;
+            btnSetLevel.Enabled = hasSlot;
+            btnRank1.Enabled = hasSlot;
             btnBrowseMap.Enabled = enabled;
             btnBrowse.Enabled = enabled;
             btnOpenFolder.Enabled = enabled;
