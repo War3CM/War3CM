@@ -85,7 +85,7 @@ namespace Phanmemwar3.Core
                     {
                         FileName = ydweConfig,
                         Arguments = "-launchwar3" + (mapArgument.Length > 0 ? " -loadfile \"" + mapArgument + "\"" : ""),
-                        WorkingDirectory = weBin,
+                        WorkingDirectory = options.War3Path,
                         UseShellExecute = true
                     };
                     using var loader = Process.Start(psi);
@@ -116,6 +116,11 @@ namespace Phanmemwar3.Core
                     }
 
                     var sbArgs = new StringBuilder();
+                    if (mapArgument.Length > 0)
+                    {
+                        sbArgs.Append(" -loadfile \"" + mapArgument + "\"");
+                    }
+
                     if (options.GraphicType.Equals("OpenGL", StringComparison.OrdinalIgnoreCase))
                     {
                         sbArgs.Append(" -opengl");
@@ -129,11 +134,6 @@ namespace Phanmemwar3.Core
                     if (options.FastLoad)
                     {
                         sbArgs.Append(" -fastload");
-                    }
-
-                    if (mapArgument.Length > 0)
-                    {
-                        sbArgs.Append(" -loadfile \"" + mapArgument + "\"");
                     }
 
                     logger?.Invoke($"Đang khởi chạy War3.exe {sbArgs} (Cửa sổ {i + 1})...");
@@ -213,7 +213,8 @@ namespace Phanmemwar3.Core
             sb.AppendLine($"LaunchFixedRatioWindowed = {(options.FixRatio ? "1" : "0")}");
             sb.AppendLine($"LaunchFullWindowed = {(isFullWindowed ? "1" : "0")}");
             sb.AppendLine($"LaunchLockingMouse = {(options.LockMouse ? "1" : "0")}");
-            sb.AppendLine($"LaunchRenderingEngine = {options.GraphicType}");
+            string engine = options.GraphicType.Equals("OpenGL", StringComparison.OrdinalIgnoreCase) ? "OpenGL" : "Direct3D 8";
+            sb.AppendLine($"LaunchRenderingEngine = {engine}");
             sb.AppendLine($"LaunchWideScreenSupport = {(options.WideScreen ? "1" : "0")}");
             sb.AppendLine($"LaunchWindowed = {(isWindowed ? "1" : "0")}");
             sb.AppendLine("MlScriptFolder =  ");

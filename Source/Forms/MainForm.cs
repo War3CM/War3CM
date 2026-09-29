@@ -1159,8 +1159,29 @@ namespace Phanmemwar3.Forms
 
         private static void CleanupStagedMap(string path)
         {
-            try { if (path.Length > 0 && File.Exists(path)) File.Delete(path); }
-            catch { /* An antivirus or game may still have the map open. */ }
+            // Cache staged maps in Maps/WPM to enable instant repeat launches for large maps (500MB+).
+            // Clean up old staged files older than 3 days to reclaim disk space automatically.
+            try
+            {
+                if (string.IsNullOrEmpty(path)) return;
+                string? folder = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(folder) && Directory.Exists(folder))
+                {
+                    var cutoff = DateTime.UtcNow.AddDays(-3);
+                    foreach (var file in Directory.EnumerateFiles(folder, "*.*"))
+                    {
+                        try
+                        {
+                            if (File.GetLastAccessTimeUtc(file) < cutoff && File.GetLastWriteTimeUtc(file) < cutoff)
+                            {
+                                File.Delete(file);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
         }
 
         private async Task WatchGameAsync(Process game, SaveSession session, string stagedMapPath)

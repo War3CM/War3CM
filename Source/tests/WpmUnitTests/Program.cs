@@ -121,6 +121,10 @@ namespace Phanmemwar3.Tests
                 Assert(arg.StartsWith("Maps\\WPM") || arg.StartsWith("Maps/WPM"), "Relative argument starts with Maps/WPM");
                 Assert(arg.Length < 54, $"Argument length ({arg.Length}) is safely below the 54-char buffer limit");
 
+                // Test caching / reuse of identical staged map
+                string restaged = MapLaunchStager.Stage(gameDir, mapSource);
+                Assert(restaged == staged, "Re-staging the same map reuses the existing cached staged file");
+
                 // Test empty map throws IOException
                 string emptyMap = Path.Combine(tempDir, "Empty.w3x");
                 File.WriteAllText(emptyMap, "");
