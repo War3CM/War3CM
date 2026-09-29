@@ -28,6 +28,7 @@ namespace Phanmemwar3.Forms
         private ModernButton btnBackupSlot;
         private ModernButton btnDeleteSlot;
         private ModernButton btnRestoreSlot;
+        private ModernInputCapsule capsuleLevel;
         private ModernTextBox txtMapLevel;
         private ModernButton btnSetLevel;
         private ModernButton btnRank1;
@@ -310,28 +311,14 @@ namespace Phanmemwar3.Forms
             slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnBackupSlot, 1, 0);
             slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnRestoreSlot, 1, 1);
 
-            var pnlLevelGroup = new TableLayoutPanel
+            capsuleLevel = new ModernInputCapsule
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                RowCount = 1,
                 Margin = new Padding(2, 2, 2, 2),
-                Padding = Padding.Empty
-            };
-            pnlLevelGroup.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 60));
-            pnlLevelGroup.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            pnlLevelGroup.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            txtMapLevel = new ModernTextBox
-            {
-                Dock = DockStyle.Fill,
-                Margin = new Padding(0, 0, 4, 0),
-                Padding = new Padding(3, 5, 3, 5),
                 Enabled = false
             };
-            txtMapLevel.InnerTextBox.TextAlign = HorizontalAlignment.Center;
-            txtMapLevel.InnerTextBox.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
-            txtMapLevel.InnerTextBox.MaxLength = 3;
+            txtMapLevel = capsuleLevel.TextBox;
+            txtMapLevel.Enabled = false;
             txtMapLevel.InnerTextBox.Enabled = false;
             txtMapLevel.InnerTextBox.KeyPress += (s, e) =>
             {
@@ -345,18 +332,46 @@ namespace Phanmemwar3.Forms
                     e.SuppressKeyPress = true;
                     btnSetLevel.PerformClick();
                 }
+                else if (e.KeyCode == Keys.Up)
+                {
+                    if (int.TryParse(txtMapLevel.TextContent.Trim(), out int val))
+                    {
+                        txtMapLevel.TextContent = Math.Min(100, val + 1).ToString();
+                        txtMapLevel.InnerTextBox.SelectAll();
+                        e.Handled = true;
+                    }
+                }
+                else if (e.KeyCode == Keys.Down)
+                {
+                    if (int.TryParse(txtMapLevel.TextContent.Trim(), out int val))
+                    {
+                        txtMapLevel.TextContent = Math.Max(1, val - 1).ToString();
+                        txtMapLevel.InnerTextBox.SelectAll();
+                        e.Handled = true;
+                    }
+                }
+            };
+            txtMapLevel.InnerTextBox.MouseWheel += (s, e) =>
+            {
+                if (int.TryParse(txtMapLevel.TextContent.Trim(), out int val))
+                {
+                    int delta = e.Delta > 0 ? 1 : -1;
+                    txtMapLevel.TextContent = Math.Clamp(val + delta, 1, 100).ToString();
+                    txtMapLevel.InnerTextBox.SelectAll();
+                }
             };
 
-            btnSetLevel = ActionButton("setMapLevel", BtnSetLevel_Click);
-            btnSetLevel.Margin = Padding.Empty;
-            btnSetLevel.BackColorNormal = Color.FromArgb(28, 52, 82);
-            btnSetLevel.BackColorHover = Color.FromArgb(42, 78, 120);
-            btnSetLevel.BorderColor = Color.FromArgb(50, 110, 180);
+            btnSetLevel = capsuleLevel.ActionButton;
+            btnSetLevel.Tag = "setMapLevel";
+            btnSetLevel.Text = T("setMapLevel");
+            btnSetLevel.Click += BtnSetLevel_Click;
             btnSetLevel.Enabled = false;
+            _actionTip.SetToolTip(btnSetLevel, T("tipSetLevel"));
+            _actionTip.SetToolTip(txtMapLevel, T("tipSetLevel"));
+            _actionTip.SetToolTip(txtMapLevel.InnerTextBox, T("tipSetLevel"));
+            _actionTip.SetToolTip(capsuleLevel, T("tipSetLevel"));
 
-            pnlLevelGroup.Controls.Add(txtMapLevel, 0, 0);
-            pnlLevelGroup.Controls.Add(btnSetLevel, 1, 0);
-            slotActions.Controls.Add(pnlLevelGroup, 0, 2);
+            slotActions.Controls.Add(capsuleLevel, 0, 2);
 
             btnRank1 = ActionButton("btnRank1", BtnRank1_Click);
             btnRank1.Margin = new Padding(2, 2, 2, 2);
@@ -414,7 +429,7 @@ namespace Phanmemwar3.Forms
             playBody.RowCount = 2;
             playBody.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
             playBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            var playRow = Grid(42, 0, 85, 140, 140);
+            var playRow = Grid(42, 0, 80, 135, 165);
             lblLaunchHint = Label("launchHint");
             lblLaunchHint.ForeColor = Color.FromArgb(160, 185, 215);
             lblLaunchHint.Font = new Font("Segoe UI", 9.25f);
@@ -506,6 +521,7 @@ namespace Phanmemwar3.Forms
             _actionTip.SetToolTip(btnConfigYDWE, T("ydweSettingsHint"));
             if (btnSetLevel != null) _actionTip.SetToolTip(btnSetLevel, T("tipSetLevel"));
             if (btnRank1 != null) _actionTip.SetToolTip(btnRank1, T("tipRank1"));
+            if (capsuleLevel != null) _actionTip.SetToolTip(capsuleLevel, T("tipSetLevel"));
             if (txtMapLevel != null)
             {
                 _actionTip.SetToolTip(txtMapLevel, T("tipSetLevel"));
@@ -767,8 +783,26 @@ namespace Phanmemwar3.Forms
 
         private void UpdateRank1Appearance()
         {
-            btnRank1.BorderColor = _isRank1Active ? Color.FromArgb(240, 180, 40) : Color.FromArgb(50, 110, 180);
-            btnRank1.BackColorNormal = _isRank1Active ? Color.FromArgb(38, 48, 62) : Color.FromArgb(28, 52, 82);
+            if (_isRank1Active)
+            {
+                btnRank1.BackColorNormal = Color.FromArgb(82, 54, 12);
+                btnRank1.GradientEndColor = Color.FromArgb(48, 30, 6);
+                btnRank1.BackColorHover = Color.FromArgb(110, 72, 16);
+                btnRank1.GradientEndColorHover = Color.FromArgb(64, 40, 8);
+                btnRank1.BorderColor = Color.FromArgb(245, 185, 45);
+                btnRank1.ForeColor = Color.FromArgb(255, 225, 120);
+                btnRank1.BackColorPressed = Color.FromArgb(40, 24, 4);
+            }
+            else
+            {
+                btnRank1.BackColorNormal = Color.FromArgb(28, 52, 82);
+                btnRank1.GradientEndColor = null;
+                btnRank1.BackColorHover = Color.FromArgb(42, 78, 120);
+                btnRank1.GradientEndColorHover = null;
+                btnRank1.BorderColor = Color.FromArgb(50, 110, 180);
+                btnRank1.ForeColor = Color.White;
+                btnRank1.BackColorPressed = Color.FromArgb(16, 26, 40);
+            }
             btnRank1.Invalidate();
         }
 
@@ -780,6 +814,7 @@ namespace Phanmemwar3.Forms
                 txtMapLevel.TextContent = level.ToString();
                 _isRank1Active = MapSaveManager.ReadMapLevelRank(slot.Path);
                 UpdateRank1Appearance();
+                if (capsuleLevel != null) capsuleLevel.Enabled = true;
                 txtMapLevel.Enabled = true;
                 txtMapLevel.InnerTextBox.Enabled = true;
                 btnSetLevel.Enabled = true;
@@ -790,6 +825,7 @@ namespace Phanmemwar3.Forms
                 txtMapLevel.TextContent = "";
                 _isRank1Active = false;
                 UpdateRank1Appearance();
+                if (capsuleLevel != null) capsuleLevel.Enabled = false;
                 txtMapLevel.Enabled = false;
                 txtMapLevel.InnerTextBox.Enabled = false;
                 btnSetLevel.Enabled = false;
@@ -1107,6 +1143,7 @@ namespace Phanmemwar3.Forms
             btnInGameOptions.Enabled = enabled;
             cboSlots.Enabled = enabled;
             bool hasSlot = cboSlots.SelectedItem is SaveSlot;
+            if (capsuleLevel != null) capsuleLevel.Enabled = hasSlot;
             txtMapLevel.Enabled = hasSlot;
             txtMapLevel.InnerTextBox.Enabled = hasSlot;
             btnSetLevel.Enabled = hasSlot;

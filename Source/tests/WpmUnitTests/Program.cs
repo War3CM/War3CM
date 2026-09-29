@@ -587,13 +587,23 @@ namespace Phanmemwar3.Tests
                     var slotGrid = setLevelBtn?.Parent?.Parent as System.Windows.Forms.TableLayoutPanel;
                     Assert(slotGrid != null && slotGrid.RowCount == 3, "slotActions grid has RowCount == 3");
 
+                    var capsule = FindControl(mainForm, c => c is Phanmemwar3.Forms.ModernInputCapsule) as Phanmemwar3.Forms.ModernInputCapsule;
+                    Assert(capsule != null, "capsuleLevel exists as ModernInputCapsule");
+                    Assert(capsule?.TextBox == mapLevelTxt, "capsuleLevel hosts txtMapLevel");
+                    Assert(capsule?.ActionButton == setLevelBtn, "capsuleLevel hosts btnSetLevel");
+
+                    var playGrid = runGameBtn?.Parent as System.Windows.Forms.TableLayoutPanel;
+                    Assert(playGrid != null && playGrid.ColumnStyles.Count >= 4 && playGrid.ColumnStyles[3].Width >= 165, "playRow allocates at least 165px for btnRunGame");
+
                     Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(setLevelBtn!)), "btnSetLevel has informative tooltip");
                     Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(rank1Btn!)), "btnRank1 has informative tooltip");
                     Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(mapLevelTxt!)), "txtMapLevel has informative tooltip");
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(capsule!)), "capsuleLevel has informative tooltip");
 
                     Assert(!setLevelBtn!.Enabled, "btnSetLevel disabled when no slot is selected");
                     Assert(!rank1Btn!.Enabled, "btnRank1 disabled when no slot is selected");
                     Assert(!mapLevelTxt!.Enabled, "txtMapLevel disabled when no slot is selected");
+                    Assert(!capsule!.Enabled, "capsuleLevel disabled when no slot is selected");
 
                     using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
                     Assert(guideForm.Icon != null, "GuideForm has valid window Icon");

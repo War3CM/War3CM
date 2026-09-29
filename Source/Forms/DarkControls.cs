@@ -41,6 +41,71 @@ namespace Phanmemwar3.Forms
             return path;
         }
 
+        public static GraphicsPath GetRoundedRectangle(Rectangle bounds, int topLeft, int topRight, int bottomRight, int bottomLeft)
+        {
+            var path = new GraphicsPath();
+            if (bounds.Width <= 0 || bounds.Height <= 0) return path;
+
+            int maxR = Math.Min(bounds.Width, bounds.Height) / 2;
+            topLeft = Math.Clamp(topLeft, 0, maxR);
+            topRight = Math.Clamp(topRight, 0, maxR);
+            bottomRight = Math.Clamp(bottomRight, 0, maxR);
+            bottomLeft = Math.Clamp(bottomLeft, 0, maxR);
+
+            if (topLeft <= 0 && topRight <= 0 && bottomRight <= 0 && bottomLeft <= 0)
+            {
+                path.AddRectangle(bounds);
+                return path;
+            }
+
+            // Top left arc
+            if (topLeft > 0)
+            {
+                int d = topLeft * 2;
+                path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
+            }
+            else
+            {
+                path.AddLine(bounds.X, bounds.Y, bounds.X, bounds.Y);
+            }
+
+            // Top right arc
+            if (topRight > 0)
+            {
+                int d = topRight * 2;
+                path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
+            }
+            else
+            {
+                path.AddLine(bounds.Right, bounds.Y, bounds.Right, bounds.Y);
+            }
+
+            // Bottom right arc
+            if (bottomRight > 0)
+            {
+                int d = bottomRight * 2;
+                path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
+            }
+            else
+            {
+                path.AddLine(bounds.Right, bounds.Bottom, bounds.Right, bounds.Bottom);
+            }
+
+            // Bottom left arc
+            if (bottomLeft > 0)
+            {
+                int d = bottomLeft * 2;
+                path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
+            }
+            else
+            {
+                path.AddLine(bounds.X, bounds.Bottom, bounds.X, bounds.Bottom);
+            }
+
+            path.CloseFigure();
+            return path;
+        }
+
         public static void DrawDiscordLogo(Graphics g, Rectangle bounds, bool isHovered)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -231,6 +296,10 @@ namespace Phanmemwar3.Forms
     public class ModernButton : Button
     {
         public int BorderRadius { get; set; } = 6;
+        public int BorderRadiusTopLeft { get; set; } = -1;
+        public int BorderRadiusTopRight { get; set; } = -1;
+        public int BorderRadiusBottomRight { get; set; } = -1;
+        public int BorderRadiusBottomLeft { get; set; } = -1;
         public Color BackColorNormal { get; set; } = Color.FromArgb(22, 34, 50);
         public Color BackColorHover { get; set; } = Color.FromArgb(32, 48, 70);
         public Color BackColorPressed { get; set; } = Color.FromArgb(16, 26, 40);
@@ -303,7 +372,13 @@ namespace Phanmemwar3.Forms
             e.Graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
             var rect = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
-            using var path = GraphicsUtils.GetRoundedRectangle(rect, BorderRadius);
+            int tl = BorderRadiusTopLeft >= 0 ? BorderRadiusTopLeft : BorderRadius;
+            int tr = BorderRadiusTopRight >= 0 ? BorderRadiusTopRight : BorderRadius;
+            int br = BorderRadiusBottomRight >= 0 ? BorderRadiusBottomRight : BorderRadius;
+            int bl = BorderRadiusBottomLeft >= 0 ? BorderRadiusBottomLeft : BorderRadius;
+            using var path = (BorderRadiusTopLeft >= 0 || BorderRadiusTopRight >= 0 || BorderRadiusBottomRight >= 0 || BorderRadiusBottomLeft >= 0)
+                ? GraphicsUtils.GetRoundedRectangle(rect, tl, tr, br, bl)
+                : GraphicsUtils.GetRoundedRectangle(rect, BorderRadius);
 
             Color c1 = _isPressed ? BackColorPressed : (_isHovered ? BackColorHover : BackColorNormal);
             Color? c2 = _isHovered && GradientEndColorHover.HasValue ? GradientEndColorHover : GradientEndColor;
@@ -368,6 +443,10 @@ namespace Phanmemwar3.Forms
         private readonly TextBox _innerBox;
         private bool _isFocused = false;
 
+        public int BorderRadius { get; set; } = 4;
+        public Color BorderColor { get; set; } = Color.FromArgb(30, 48, 71);
+        public Color FocusedBorderColor { get; set; } = Color.FromArgb(30, 136, 229);
+
         public string TextContent
         {
             get => _innerBox.Text;
@@ -380,7 +459,7 @@ namespace Phanmemwar3.Forms
         {
             this.Height = 34;
             this.BackColor = Color.FromArgb(16, 23, 36);
-            this.Padding = new Padding(10, 6, 10, 5);
+            this.Padding = new Padding(8, 4, 8, 4);
             this.DoubleBuffered = true;
 
             _innerBox = new TextBox
@@ -388,8 +467,7 @@ namespace Phanmemwar3.Forms
                 BorderStyle = BorderStyle.None,
                 BackColor = Color.FromArgb(16, 23, 36),
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9.5f),
-                Dock = DockStyle.Fill
+                Font = new Font("Segoe UI", 9.5f)
             };
 
             _innerBox.GotFocus += (s, e) => { _isFocused = true; Invalidate(); };
@@ -398,20 +476,202 @@ namespace Phanmemwar3.Forms
             this.Controls.Add(_innerBox);
         }
 
+        protected override void OnResize(EventArgs eventargs)
+        {
+            base.OnResize(eventargs);
+            CenterInnerBox();
+        }
+
+        protected override void OnLayout(LayoutEventArgs levent)
+        {
+            base.OnLayout(levent);
+            CenterInnerBox();
+        }
+
+        private void CenterInnerBox()
+        {
+            if (_innerBox == null) return;
+            int h = _innerBox.PreferredHeight;
+            int y = Math.Max(0, (this.ClientSize.Height - h) / 2);
+            int x = this.Padding.Left;
+            int w = Math.Max(10, this.ClientSize.Width - this.Padding.Horizontal);
+            _innerBox.SetBounds(x, y, w, h);
+        }
+
+        protected override void OnBackColorChanged(EventArgs e)
+        {
+            base.OnBackColorChanged(e);
+            if (_innerBox != null) _innerBox.BackColor = this.BackColor;
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
             var rect = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
-            using var path = GraphicsUtils.GetRoundedRectangle(rect, 4);
+            using var path = GraphicsUtils.GetRoundedRectangle(rect, BorderRadius);
 
             using var bgBrush = new SolidBrush(_innerBox.BackColor);
             e.Graphics.FillPath(bgBrush, path);
 
-            Color border = _isFocused ? Color.FromArgb(30, 136, 229) : Color.FromArgb(30, 48, 71);
+            Color border = _isFocused ? FocusedBorderColor : BorderColor;
             using var pen = new Pen(border, _isFocused ? 1.5f : 1f);
             e.Graphics.DrawPath(pen, path);
+        }
+    }
+
+    public class ModernInputCapsule : Panel
+    {
+        public int BorderRadius { get; set; } = 7;
+        public Color BorderColor { get; set; } = Color.FromArgb(50, 110, 180);
+        public Color BackColorNormal { get; set; } = Color.FromArgb(22, 34, 50);
+        public Color DividerColor { get; set; } = Color.FromArgb(45, 75, 110);
+
+        private readonly Label _lblPrefix;
+        private readonly ModernTextBox _txtBox;
+        private readonly ModernButton _btnAction;
+        private int _inputSectionWidth = 72;
+
+        public ModernTextBox TextBox => _txtBox;
+        public ModernButton ActionButton => _btnAction;
+        public Label PrefixLabel => _lblPrefix;
+
+        public int InputSectionWidth
+        {
+            get => _inputSectionWidth;
+            set { _inputSectionWidth = value; PerformCapsuleLayout(); }
+        }
+
+        public ModernInputCapsule()
+        {
+            this.DoubleBuffered = true;
+            this.BackColor = BackColorNormal;
+            this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+
+            _lblPrefix = new Label
+            {
+                Text = "Lv:",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(145, 180, 220),
+                BackColor = Color.Transparent
+            };
+
+            _txtBox = new ModernTextBox
+            {
+                BorderRadius = 4,
+                BackColor = Color.FromArgb(14, 22, 34),
+                BorderColor = Color.FromArgb(38, 58, 86),
+                FocusedBorderColor = Color.FromArgb(50, 130, 220),
+                Padding = new Padding(2, 2, 2, 2)
+            };
+            _txtBox.InnerTextBox.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            _txtBox.InnerTextBox.TextAlign = HorizontalAlignment.Center;
+            _txtBox.InnerTextBox.MaxLength = 3;
+
+            _btnAction = new ModernButton
+            {
+                BorderRadius = 0,
+                BorderRadiusTopLeft = 0,
+                BorderRadiusBottomLeft = 0,
+                BorderRadiusTopRight = 7,
+                BorderRadiusBottomRight = 7,
+                BackColorNormal = Color.FromArgb(28, 52, 82),
+                BackColorHover = Color.FromArgb(42, 78, 120),
+                BackColorPressed = Color.FromArgb(18, 36, 60),
+                BorderColor = Color.FromArgb(50, 110, 180),
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+            };
+
+            this.Controls.Add(_lblPrefix);
+            this.Controls.Add(_txtBox);
+            this.Controls.Add(_btnAction);
+
+            _lblPrefix.Click += (s, e) => { if (Enabled) { _txtBox.InnerTextBox.Focus(); _txtBox.InnerTextBox.SelectAll(); } };
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            if (Enabled && e.X < _btnAction.Left)
+            {
+                _txtBox.InnerTextBox.Focus();
+                _txtBox.InnerTextBox.SelectAll();
+            }
+        }
+
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            base.OnEnabledChanged(e);
+            _lblPrefix.ForeColor = Enabled ? Color.FromArgb(145, 180, 220) : Color.FromArgb(100, 120, 145);
+            _txtBox.Enabled = Enabled;
+            _txtBox.InnerTextBox.Enabled = Enabled;
+            _btnAction.Enabled = Enabled;
+            Invalidate();
+        }
+
+        protected override void OnResize(EventArgs eventargs)
+        {
+            base.OnResize(eventargs);
+            PerformCapsuleLayout();
+        }
+
+        private void PerformCapsuleLayout()
+        {
+            int h = this.ClientSize.Height;
+            int w = this.ClientSize.Width;
+            if (h <= 0 || w <= 0) return;
+
+            // Prefix Label: X = 8, vertically centered
+            int lblY = Math.Max(0, (h - _lblPrefix.PreferredHeight) / 2);
+            _lblPrefix.Location = new Point(8, lblY);
+
+            // Input TextBox: X ~ 32, width 38, height 24, vertically centered
+            int boxW = 38;
+            int boxH = Math.Min(25, Math.Max(20, h - 8));
+            int boxX = _lblPrefix.Right + 3;
+            int boxY = (h - boxH) / 2;
+            _txtBox.SetBounds(boxX, boxY, boxW, boxH);
+
+            // Action Button: starts at _inputSectionWidth, takes remaining width
+            int btnX = Math.Max(boxX + boxW + 4, _inputSectionWidth);
+            _btnAction.BorderRadiusTopRight = BorderRadius;
+            _btnAction.BorderRadiusBottomRight = BorderRadius;
+            _btnAction.SetBounds(btnX, 0, Math.Max(0, w - btnX), h);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Color parentBg = Parent?.BackColor ?? Color.FromArgb(22, 32, 48);
+            using (var bgBrush = new SolidBrush(parentBg))
+            {
+                e.Graphics.FillRectangle(bgBrush, ClientRectangle);
+            }
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            int divX = _btnAction.Left;
+            var leftRect = new Rectangle(0, 0, Math.Max(0, divX), this.Height - 1);
+            using var leftPath = GraphicsUtils.GetRoundedRectangle(leftRect, BorderRadius, 0, 0, BorderRadius);
+
+            // Fill left capsule background
+            using (var b = new SolidBrush(BackColorNormal))
+            {
+                e.Graphics.FillPath(b, leftPath);
+            }
+
+            // Draw outer border for the left section (top, left, bottom)
+            using (var pen = new Pen(BorderColor, 1f))
+            {
+                e.Graphics.DrawPath(pen, leftPath);
+            }
+
+            // Draw 1px vertical divider
+            using (var divPen = new Pen(DividerColor, 1f))
+            {
+                e.Graphics.DrawLine(divPen, divX, 2, divX, this.Height - 3);
+            }
         }
     }
 
