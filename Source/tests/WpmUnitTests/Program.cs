@@ -34,6 +34,7 @@ namespace Phanmemwar3.Tests
             Test_ConfigManager();
             Test_MapLaunchStager();
             Test_MapSaveManager_Deep();
+            Test_MapSaveManager_MapLevelAndRank1();
             Test_PluginManager();
             Test_SaveValueMuter();
             Test_PlayerNameRenamingAndRegistrySync();
@@ -205,6 +206,110 @@ namespace Phanmemwar3.Tests
                 // Check History
                 string historyDir = Path.Combine(mgr.MapDirectory(map), "_History");
                 Assert(Directory.Exists(historyDir) && Directory.EnumerateFiles(historyDir).Any(), "_History archive created for pre-sync snapshot");
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+        }
+
+        static void Test_MapSaveManager_MapLevelAndRank1()
+        {
+            Console.WriteLine("\n[3b] Testing MapSaveManager (Map Level & Rank 1 Logic)");
+            string tempDir = Path.Combine(Path.GetTempPath(), "WpmTest_Level_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                string emptyIni = Path.Combine(tempDir, "EmptySlot.ini");
+
+                // 1. Initial read on non-existent file
+                Assert(MapSaveManager.ReadMapLevel(emptyIni, 100) == 100, "ReadMapLevel returns default level 100 on missing file");
+                Assert(MapSaveManager.ReadMapLevel(emptyIni, 50) == 50, "ReadMapLevel returns custom default level on missing file");
+                Assert(MapSaveManager.ReadMapLevelRank(emptyIni) == false, "ReadMapLevelRank returns false on missing file");
+
+                // 2. Write to empty/new file -> auto creates [DzAPI] and syncs DzAPI + KKAPI keys
+                bool writeOk = MapSaveManager.WriteMapLevel(emptyIni, 88);
+                Assert(writeOk, "WriteMapLevel returns true on new file creation");
+                Assert(File.Exists(emptyIni), "WriteMapLevel creates new INI file on disk");
+                string emptyContent = File.ReadAllText(emptyIni);
+                Assert(emptyContent.Contains("[DzAPI]"), "Created INI contains [DzAPI] section header");
+                Assert(emptyContent.Contains("DzAPI_Map_GetMapLevel=88"), "Contains DzAPI_Map_GetMapLevel=88");
+                Assert(emptyContent.Contains("MLS-MsGetPlayerMapLevel-0=88"), "Contains MLS-MsGetPlayerMapLevel-0=88");
+                Assert(emptyContent.Contains("MLS-MsGetPlayerMapLevel-1=88"), "Contains MLS-MsGetPlayerMapLevel-1=88");
+                Assert(emptyContent.Contains("MLS-MsGetPlayerMapLevel-2=88"), "Contains MLS-MsGetPlayerMapLevel-2=88");
+                Assert(emptyContent.Contains("MLS-MsGetPlayerMapLevel-3=88"), "Contains MLS-MsGetPlayerMapLevel-3=88");
+                Assert(MapSaveManager.ReadMapLevel(emptyIni) == 88, "ReadMapLevel reads back 88 correctly");
+
+                // 3. Data preservation: Overwrite existing file with other keys and comments
+                string populatedIni = Path.Combine(tempDir, "ExistingData.ini");
+                string originalData = "[Profile]\n" +
+                                     "PlayerName=Arthas\n" +
+                                     "Gold=99999\n" +
+                                     "\n" +
+                                     "[DzAPI]\n" +
+                                     "# Custom game timestamp\n" +
+                                     "SSV-0-DAYTIME=12345\n" +
+                                     "SSV-0-TOKEN=abcdef123456\n" +
+                                     "CUSTOM_HERO=Paladin\n";
+                File.WriteAllText(populatedIni, originalData);
+
+                bool updateOk = MapSaveManager.WriteMapLevel(populatedIni, 75);
+                Assert(updateOk, "WriteMapLevel succeeds on existing populated file");
+                string updatedContent = File.ReadAllText(populatedIni);
+                Assert(updatedContent.Contains("PlayerName=Arthas"), "Preserves unrelated section [Profile] keys");
+                Assert(updatedContent.Contains("Gold=99999"), "Preserves Gold=99999");
+                Assert(updatedContent.Contains("SSV-0-DAYTIME=12345"), "Preserves SSV-0-DAYTIME=12345 in [DzAPI]");
+                Assert(updatedContent.Contains("SSV-0-TOKEN=abcdef123456"), "Preserves SSV-0-TOKEN in [DzAPI]");
+                Assert(updatedContent.Contains("CUSTOM_HERO=Paladin"), "Preserves CUSTOM_HERO in [DzAPI]");
+                Assert(updatedContent.Contains("DzAPI_Map_GetMapLevel=75"), "Appends/updates DzAPI_Map_GetMapLevel=75");
+                Assert(updatedContent.Contains("MLS-MsGetPlayerMapLevel-0=75"), "Appends/updates KKAPI key 0");
+                Assert(updatedContent.Contains("MLS-MsGetPlayerMapLevel-3=75"), "Appends/updates KKAPI key 3");
+                Assert(MapSaveManager.ReadMapLevel(populatedIni) == 75, "ReadMapLevel returns 75 from populated file");
+
+                // 4. Rank 1 Toggle (1 vs 0)
+                Assert(MapSaveManager.ReadMapLevelRank(populatedIni) == false, "Rank 1 is false when key absent");
+                bool rankOn = MapSaveManager.WriteMapLevelRank(populatedIni, true);
+                Assert(rankOn, "WriteMapLevelRank(true) succeeds");
+                Assert(MapSaveManager.ReadMapLevelRank(populatedIni) == true, "ReadMapLevelRank returns true after toggle on");
+                string rankOnContent = File.ReadAllText(populatedIni);
+                Assert(rankOnContent.Contains("DzAPI_Map_GetMapLevelRank=1"), "File contains DzAPI_Map_GetMapLevelRank=1");
+                Assert(rankOnContent.Contains("SSV-0-DAYTIME=12345"), "SSV-0-DAYTIME preserved after Rank 1 toggle on");
+                Assert(rankOnContent.Contains("DzAPI_Map_GetMapLevel=75"), "Map Level 75 preserved after Rank 1 toggle on");
+
+                bool rankOff = MapSaveManager.WriteMapLevelRank(populatedIni, false);
+                Assert(rankOff, "WriteMapLevelRank(false) succeeds");
+                Assert(MapSaveManager.ReadMapLevelRank(populatedIni) == false, "ReadMapLevelRank returns false after toggle off");
+                string rankOffContent = File.ReadAllText(populatedIni);
+                Assert(rankOffContent.Contains("DzAPI_Map_GetMapLevelRank=0"), "File contains DzAPI_Map_GetMapLevelRank=0");
+                Assert(rankOffContent.Contains("SSV-0-DAYTIME=12345"), "SSV-0-DAYTIME preserved after Rank 1 toggle off");
+
+                // 5. Clamping and validation boundary checks (1-100)
+                string clampIni = Path.Combine(tempDir, "ClampTest.ini");
+                MapSaveManager.WriteMapLevel(clampIni, 0);
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 1, "Level 0 clamped to 1");
+
+                MapSaveManager.WriteMapLevel(clampIni, -99);
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 1, "Negative level -99 clamped to 1");
+
+                MapSaveManager.WriteMapLevel(clampIni, 999);
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 100, "Level 999 clamped to 100");
+
+                MapSaveManager.WriteMapLevel(clampIni, 100);
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 100, "Level 100 preserved exactly");
+
+                MapSaveManager.WriteMapLevel(clampIni, 1);
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 1, "Level 1 preserved exactly");
+
+                // 6. Manual corrupted value in file is clamped / handled safely on read
+                File.WriteAllText(clampIni, "[DzAPI]\nDzAPI_Map_GetMapLevel=350\n");
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 100, "Out-of-range file value 350 clamped to 100 on read");
+
+                File.WriteAllText(clampIni, "[DzAPI]\nDzAPI_Map_GetMapLevel=-10\n");
+                Assert(MapSaveManager.ReadMapLevel(clampIni) == 1, "Out-of-range file value -10 clamped to 1 on read");
+
+                File.WriteAllText(clampIni, "[DzAPI]\nDzAPI_Map_GetMapLevel=not_a_number\n");
+                Assert(MapSaveManager.ReadMapLevel(clampIni, 100) == 100, "Non-numeric level falls back to default level");
             }
             finally
             {

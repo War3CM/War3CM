@@ -179,6 +179,254 @@ namespace Phanmemwar3.Core
             }
             return new SaveSession(root, slot.Path, previous);
         }
+
+        public static int ReadMapLevel(string iniPath, int defaultLevel = 100)
+        {
+            try
+            {
+                if (!File.Exists(iniPath)) return defaultLevel;
+                string[] lines = File.ReadAllLines(iniPath);
+                bool inDzApi = false;
+                string? levelStr = null;
+                string? kkLevelStr = null;
+
+                foreach (string line in lines)
+                {
+                    string trimmed = line.Trim();
+                    if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                    {
+                        string secName = trimmed.Substring(1, trimmed.Length - 2).Trim();
+                        inDzApi = string.Equals(secName, "DzAPI", StringComparison.OrdinalIgnoreCase);
+                        continue;
+                    }
+
+                    if (!inDzApi || trimmed.StartsWith("#") || trimmed.StartsWith(";")) continue;
+
+                    int eq = line.IndexOf('=');
+                    if (eq > 0)
+                    {
+                        string key = line.Substring(0, eq).Trim();
+                        string val = line.Substring(eq + 1).Trim();
+                        if (string.Equals(key, "DzAPI_Map_GetMapLevel", StringComparison.OrdinalIgnoreCase))
+                        {
+                            levelStr = val;
+                        }
+                        else if (levelStr == null && string.Equals(key, "MLS-MsGetPlayerMapLevel-0", StringComparison.OrdinalIgnoreCase))
+                        {
+                            kkLevelStr = val;
+                        }
+                    }
+                }
+
+                string? targetStr = levelStr ?? kkLevelStr;
+                if (targetStr != null && int.TryParse(targetStr, out int parsed))
+                {
+                    return Math.Clamp(parsed, 1, 100);
+                }
+                return defaultLevel;
+            }
+            catch
+            {
+                return defaultLevel;
+            }
+        }
+
+        public static bool WriteMapLevel(string iniPath, int level)
+        {
+            int clamped = Math.Clamp(level, 1, 100);
+            string lvlStr = clamped.ToString();
+            var keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["DzAPI_Map_GetMapLevel"] = lvlStr,
+                ["MLS-MsGetPlayerMapLevel-0"] = lvlStr,
+                ["MLS-MsGetPlayerMapLevel-1"] = lvlStr,
+                ["MLS-MsGetPlayerMapLevel-2"] = lvlStr,
+                ["MLS-MsGetPlayerMapLevel-3"] = lvlStr
+            };
+            return UpdateDzApiKeys(iniPath, keys);
+        }
+
+        public static bool ReadMapLevelRank(string iniPath)
+        {
+            try
+            {
+                if (!File.Exists(iniPath)) return false;
+                string[] lines = File.ReadAllLines(iniPath);
+                bool inDzApi = false;
+
+                foreach (string line in lines)
+                {
+                    string trimmed = line.Trim();
+                    if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                    {
+                        string secName = trimmed.Substring(1, trimmed.Length - 2).Trim();
+                        inDzApi = string.Equals(secName, "DzAPI", StringComparison.OrdinalIgnoreCase);
+                        continue;
+                    }
+
+                    if (!inDzApi || trimmed.StartsWith("#") || trimmed.StartsWith(";")) continue;
+
+                    int eq = line.IndexOf('=');
+                    if (eq > 0)
+                    {
+                        string key = line.Substring(0, eq).Trim();
+                        if (string.Equals(key, "DzAPI_Map_GetMapLevelRank", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string val = line.Substring(eq + 1).Trim();
+                            return string.Equals(val, "1", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(val, "true", StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool WriteMapLevelRank(string iniPath, bool isRank1)
+        {
+            var keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["DzAPI_Map_GetMapLevelRank"] = isRank1 ? "1" : "0"
+            };
+            return UpdateDzApiKeys(iniPath, keys);
+        }
+
+        private static bool UpdateDzApiKeys(string iniPath, Dictionary<string, string> keysToSet)
+        {
+            try
+            {
+                string? dir = System.IO.Path.GetDirectoryName(iniPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                List<string> lines = File.Exists(iniPath)
+                    ? File.ReadAllLines(iniPath).ToList()
+                    : new List<string>();
+
+                var remainingKeys = new HashSet<string>(keysToSet.Keys, StringComparer.OrdinalIgnoreCase);
+                bool dzApiFound = false;
+                bool inDzApi = false;
+                int dzApiInsertIndex = -1;
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    string line = lines[i];
+                    string trimmed = line.Trim();
+
+                    if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                    {
+                        string secName = trimmed.Substring(1, trimmed.Length - 2).Trim();
+                        if (inDzApi)
+                        {
+                            dzApiInsertIndex = i;
+                            inDzApi = false;
+                        }
+
+                        if (string.Equals(secName, "DzAPI", StringComparison.OrdinalIgnoreCase))
+                        {
+                            dzApiFound = true;
+                            inDzApi = true;
+                        }
+                        continue;
+                    }
+
+                    if (inDzApi)
+                    {
+                        if (trimmed.StartsWith("#") || trimmed.StartsWith(";"))
+                        {
+                            continue;
+                        }
+
+                        int eq = line.IndexOf('=');
+                        if (eq > 0)
+                        {
+                            string key = line.Substring(0, eq).Trim();
+                            foreach (var targetKey in keysToSet.Keys)
+                            {
+                                if (string.Equals(key, targetKey, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    lines[i] = targetKey + "=" + keysToSet[targetKey];
+                                    remainingKeys.Remove(targetKey);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (inDzApi)
+                {
+                    dzApiInsertIndex = lines.Count;
+                }
+
+                if (dzApiFound)
+                {
+                    if (remainingKeys.Count > 0)
+                    {
+                        var toInsert = new List<string>();
+                        foreach (var k in keysToSet.Keys)
+                        {
+                            if (remainingKeys.Contains(k))
+                            {
+                                toInsert.Add(k + "=" + keysToSet[k]);
+                            }
+                        }
+
+                        if (dzApiInsertIndex < 0 || dzApiInsertIndex > lines.Count)
+                        {
+                            dzApiInsertIndex = lines.Count;
+                        }
+
+                        lines.InsertRange(dzApiInsertIndex, toInsert);
+                    }
+                }
+                else
+                {
+                    if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines[^1]))
+                    {
+                        lines.Add("");
+                    }
+                    lines.Add("[DzAPI]");
+                    foreach (var kvp in keysToSet)
+                    {
+                        lines.Add(kvp.Key + "=" + kvp.Value);
+                    }
+                }
+
+                string tempDir = !string.IsNullOrEmpty(dir) ? dir : System.IO.Path.GetTempPath();
+                string tempFile = System.IO.Path.Combine(tempDir, System.IO.Path.GetFileName(iniPath) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                try
+                {
+                    File.WriteAllLines(tempFile, lines, new UTF8Encoding(false));
+                    if (File.Exists(iniPath))
+                    {
+                        File.Move(tempFile, iniPath, overwrite: true);
+                    }
+                    else
+                    {
+                        File.Move(tempFile, iniPath);
+                    }
+                    return true;
+                }
+                finally
+                {
+                    if (File.Exists(tempFile))
+                    {
+                        try { File.Delete(tempFile); } catch { }
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
     public sealed class SaveSession
