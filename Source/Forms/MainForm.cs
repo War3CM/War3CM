@@ -711,12 +711,8 @@ namespace Phanmemwar3.Forms
             if (slots.Count > 0)
             {
                 cboSlots.SelectedItem = slots.FirstOrDefault(x => x.Path == select) ?? slots[0];
-                UpdateSlotLevelAndRank();
             }
-            else
-            {
-                UpdateSlotLevelAndRank();
-            }
+            UpdateSlotLevelAndRank();
             btnDeleteSlot.Enabled = slots.Count > 0;
             btnBackupSlot.Enabled = slots.Count > 0;
             btnRestoreSlot.Enabled = _mapSaves.HasDeleted(map);
