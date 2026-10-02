@@ -38,6 +38,7 @@ namespace Phanmemwar3.Tests
             Test_PluginManager();
             Test_SaveValueMuter();
             Test_PlayerNameRenamingAndRegistrySync();
+            Test_DataCleaner();
             Test_CompactUILayoutAndLocalization();
 
             Console.WriteLine("==================================================");
@@ -424,6 +425,105 @@ namespace Phanmemwar3.Tests
             }
         }
 
+        static void Test_DataCleaner()
+        {
+            Console.WriteLine("\n[6b] Testing DataCleaner (Scan & Safe Execution)");
+            string tempDir = Path.Combine(Path.GetTempPath(), "WpmTest_Cleaner_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                string appDir = Path.Combine(tempDir, "App");
+                string war3Dir = Path.Combine(tempDir, "War3");
+                Directory.CreateDirectory(appDir);
+                Directory.CreateDirectory(war3Dir);
+
+                // 1. Map Cache
+                string wpmDir = Path.Combine(war3Dir, "Maps", "WPM");
+                Directory.CreateDirectory(wpmDir);
+                string stagedMap = Path.Combine(wpmDir, "staged_001.w3x");
+                File.WriteAllText(stagedMap, "STAGED_MAP_DATA");
+
+                // 2. Saves Trash, History, PreviousRoot, and active slot
+                string savesDir = Path.Combine(appDir, "Saves", "MyMap_abc123");
+                string trashDir = Path.Combine(savesDir, "_Trash");
+                string histDir = Path.Combine(savesDir, "_History");
+                string prevRootDir = Path.Combine(appDir, "Saves", "_PreviousRoot");
+                Directory.CreateDirectory(trashDir);
+                Directory.CreateDirectory(histDir);
+                Directory.CreateDirectory(prevRootDir);
+
+                string trashFile = Path.Combine(trashDir, "deleted_slot.ini");
+                File.WriteAllText(trashFile, "[Trash]");
+                string histFile = Path.Combine(histDir, "history_snap.ini");
+                File.WriteAllText(histFile, "[History]");
+                string prevRootFile = Path.Combine(prevRootDir, "prev.ini");
+                File.WriteAllText(prevRootFile, "[PrevRoot]");
+
+                // Active slot (must NEVER be deleted)
+                string activeSlot = Path.Combine(savesDir, "Knight_Active.ini");
+                File.WriteAllText(activeSlot, "[ActiveSave]\nLevel=99");
+
+                // Old backup slot (matches timestamp pattern)
+                string backupSlot = Path.Combine(savesDir, "Knight - 20261002-120000-123.ini");
+                File.WriteAllText(backupSlot, "[BackupSave]\nLevel=50");
+
+                // 3. Game Temp & Logs
+                string gameIni = Path.Combine(war3Dir, "dz_w3_plugin.ini");
+                File.WriteAllText(gameIni, "[SessionTemp]");
+                string errorsDir = Path.Combine(war3Dir, "Errors");
+                Directory.CreateDirectory(errorsDir);
+                File.WriteAllText(Path.Combine(errorsDir, "crash.txt"), "Crash log");
+
+                // 4. Plugin Backups
+                string pluginBackupsDir = Path.Combine(appDir, "Profiles", "_PluginBackups");
+                Directory.CreateDirectory(pluginBackupsDir);
+                File.WriteAllText(Path.Combine(pluginBackupsDir, "old_plugin.dll"), "DLL_BYTES");
+
+                // Perform Scan
+                var categories = DataCleaner.Scan(appDir, war3Dir);
+                Assert(categories.Count == 5, "DataCleaner scans 5 categories");
+
+                var catMap = categories.First(c => c.Category == CleanCategory.MapCache);
+                Assert(catMap.FileCount == 1, "MapCache detects 1 staged map");
+
+                var catTrash = categories.First(c => c.Category == CleanCategory.SaveTrashAndHistory);
+                Assert(catTrash.FileCount == 3, "SaveTrashAndHistory detects 3 files");
+
+                var catGame = categories.First(c => c.Category == CleanCategory.GameLogsAndTemp);
+                Assert(catGame.FileCount == 2, "GameLogsAndTemp detects 2 files (dz_w3_plugin.ini and crash log)");
+
+                var catPlugin = categories.First(c => c.Category == CleanCategory.PluginBackups);
+                Assert(catPlugin.FileCount == 1, "PluginBackups detects 1 backup file");
+
+                var catBackupSlots = categories.First(c => c.Category == CleanCategory.OldBackupSlots);
+                Assert(catBackupSlots.FileCount == 1, "OldBackupSlots detects 1 timestamped backup slot");
+
+                // Perform Clean
+                var report = DataCleaner.ExecuteClean(categories);
+                Assert(report.DeletedFiles == 8, "ExecuteClean deleted all 8 detected temp files");
+                Assert(report.FreedBytes > 0, "ExecuteClean reported non-zero freed bytes");
+                Assert(report.Errors.Count == 0, "ExecuteClean finished with 0 errors");
+
+                // Safety check: active slot must remain intact!
+                Assert(File.Exists(activeSlot), "Active save slot 'Knight_Active.ini' remains intact and was NOT deleted");
+                Assert(File.ReadAllText(activeSlot).Contains("Level=99"), "Active save content is 100% preserved");
+
+                // Staged map, trash, and logs must be deleted
+                Assert(!File.Exists(stagedMap), "Staged map in Maps/WPM was deleted");
+                Assert(!File.Exists(trashFile), "Trash save was deleted");
+                Assert(!File.Exists(backupSlot), "Old timestamped backup slot was deleted");
+                Assert(!File.Exists(gameIni), "dz_w3_plugin.ini was deleted");
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
+                }
+            }
+        }
+
         static void Test_CompactUILayoutAndLocalization()
         {
             Console.WriteLine("\n[7] Testing Compact UI & Localization Integrity");
@@ -451,7 +551,12 @@ namespace Phanmemwar3.Tests
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry",
                 "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose",
                 "tipDiscord", "tipYouTube", "tipEnterWar3", "tipRunGame",
-                "setMapLevel", "tipSetLevel", "btnRank1", "tipRank1", "invalidLevel", "setLevelSuccess", "rank1Enabled", "rank1Disabled"
+                "setMapLevel", "tipSetLevel", "btnRank1", "tipRank1", "invalidLevel", "setLevelSuccess", "rank1Enabled", "rank1Disabled",
+                "cleanData", "tipCleanData", "cleanTitle", "cleanSubtitle",
+                "cleanCatMapCache", "cleanCatMapCacheDesc", "cleanCatTrashHistory", "cleanCatTrashHistoryDesc",
+                "cleanCatGameTemp", "cleanCatGameTempDesc", "cleanCatPluginBackups", "cleanCatPluginBackupsDesc",
+                "cleanCatBackupSlots", "cleanCatBackupSlotsDesc",
+                "cleanSelectAll", "cleanDeselectAll", "btnCleanNow", "cleanConfirm", "cleanSuccess", "cleanNoSelection", "cleanZeroFiles"
             };
 
             bool allPresent = true;
@@ -625,6 +730,24 @@ namespace Phanmemwar3.Tests
                     Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(loadSaveBtn!)), "btnLoadSave has informative tooltip");
                     var newSlotBtn = FindControl(mainForm, c => c.Tag as string == "newSlot") as Phanmemwar3.Forms.ModernButton;
                     Assert(loadSaveBtn!.Enabled == newSlotBtn!.Enabled, "btnLoadSave enablement matches btnNewSlot according to map selection");
+
+                    var cleanDataBtn = FindControl(mainForm, c => c.Tag as string == "cleanData") as Phanmemwar3.Forms.ModernButton;
+                    Assert(cleanDataBtn != null, "btnCleanData exists in slot actions");
+                    Assert(!string.IsNullOrEmpty(cleanDataBtn?.Text), "btnCleanData has localized text");
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(cleanDataBtn!)), "btnCleanData has informative tooltip");
+                    Assert(cleanDataBtn!.Enabled, "btnCleanData is enabled when session is active");
+
+                    // Check slotActions grid layout
+                    var slotTable = loadSaveBtn!.Parent as TableLayoutPanel;
+                    Assert(slotTable != null, "slotActions grid exists");
+                    Assert(slotTable!.GetRow(loadSaveBtn) == 0 && slotTable.GetColumn(loadSaveBtn) == 1, "btnLoadSave is at Row 0, Col 1 (replacing Backup)");
+                    Assert(slotTable.GetRow(cleanDataBtn!) == 1 && slotTable.GetColumn(cleanDataBtn!) == 1, "btnCleanData is at Row 1, Col 1 (replacing Load Save)");
+
+                    using var cleanDataForm = new Phanmemwar3.Forms.CleanDataForm(cfg, AppDomain.CurrentDomain.BaseDirectory);
+                    Assert(cleanDataForm.Icon != null, "CleanDataForm has valid window Icon");
+                    Assert(cleanDataForm.ClientSize.Width == 540 && cleanDataForm.ClientSize.Height == 520, "CleanDataForm fixed compact ClientSize is 540x520");
+                    Assert(cleanDataForm.MinimumSize.Width == 540 && cleanDataForm.MinimumSize.Height == 520, "CleanDataForm MinimumSize is 540x520");
+                    Assert(cleanDataForm.MaximumSize.Width == 540 && cleanDataForm.MaximumSize.Height == 520, "CleanDataForm MaximumSize is 540x520");
 
                     using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
                     Assert(guideForm.Icon != null, "GuideForm has valid window Icon");

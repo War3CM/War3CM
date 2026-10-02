@@ -441,25 +441,28 @@ namespace Phanmemwar3.Forms
             stack.Controls.Add(CreateStepCard(
                 lang switch
                 {
-                    "CN" => "6. 存档管理、载入外部/VIP存档、地图等级 (1-100) 与 Rank 1",
-                    "EN" => "6. Save Profiles, Load External Save (VIP), Map Level (1-100) & Rank 1",
-                    _ => "6. Quản lý Hồ sơ Save, Nạp Save VIP (Load Save), Cấp độ Map (1-100) & Rank 1"
+                    "CN" => "6. 存档管理、Load Save (VIP)、Clean Data、地图等级 (1-100) 与 Rank 1",
+                    "EN" => "6. Save Profiles, Load Save (VIP), Clean Data, Map Level (1-100) & Rank 1",
+                    _ => "6. Quản lý Hồ sơ Save, Load Save (VIP), Clean Data, Cấp độ Map (1-100) & Rank 1"
                 },
                 lang switch
                 {
                     "CN" => "• 在【选择地图】中选取想要体验的地图（亦可直接从桌面拖拽地图文件放入启动器）。\n" +
-                            "• 创建与备份：点击【+ 新建槽】为当前角色创建独立存档；点击【备份】随时生成进度快照。\n" +
-                            "• 载入存档 (Load Save)：点击【Load Save】即可选取电脑中任意外部存档文件（如 VIP 存档、好友分享的存档等），输入新存档名称后直接导入使用。\n" +
+                            "• 创建与删除：点击【+ 新建槽】为当前角色创建专属独立存档；点击【删除】可将不再使用的槽移至回收目录。\n" +
+                            "• 载入存档 (Load Save)：点击【Load Save】即可选取电脑中任意外部存档文件（VIP 存档、好友分享存档等），输入新名称后直接导入使用。\n" +
+                            "• 清理数据 (Clean Data)：点击【清理数据】可自主选择清理游戏过程中积累的临时文件（Maps\\WPM 地图缓存、_Trash 存档垃圾、_History 历史快照、游戏报错日志等），一键释放磁盘空间。\n" +
                             "• 地图等级 (Map Level 1-100)：在输入框中填入期望等级（1 至 100）并点击【Lưu / Set】（或按 Enter 回车键），系统自动同步至 DzAPI 与 KKAPI 格式。\n" +
                             "• 切换 Rank 1：点击【Rank 1】按钮（激活时边框呈耀眼金黄色），一键开启地图最高天梯排名与特权。",
                     "EN" => "• Select your map from the dropdown (or drag & drop map files directly onto the launcher).\n" +
-                            "• Create & Backup: Click '+ New Slot' to create an isolated save for each character; use 'Backup' to create snapshots.\n" +
+                            "• Create & Delete: Click '+ New Slot' to create an isolated save for each character; click 'Delete' to remove unwanted slots.\n" +
                             "• Load Save (Import VIP Save): Click 'Load Save' to pick any external save file (.ini, .txt, VIP shared saves), enter a new profile name, and immediately use it in the selected map.\n" +
+                            "• Clean Data: Click 'Clean Data' to selectively clean temporary game files accumulated during play (staged map cache in Maps\\WPM, save trash & history snapshots, game error logs...) to reclaim disk space.\n" +
                             "• Map Level (1-100): Enter your desired level (1 to 100) in the input box and click 'Set' (or press Enter) to apply it across DzAPI and KKAPI standards.\n" +
                             "• Toggle Rank 1: Click 'Rank 1' (turns Amber Gold when active) to enable top-rank perks and leaderboard privileges in supported maps.",
                     _ => "• Tại ô 'Chọn Map', chọn bản đồ bạn muốn chơi (hoặc kéo thả file map trực tiếp vào cửa sổ phần mềm).\n" +
-                         "• Tạo & Sao lưu: Bấm '+ Tạo Slot' để tạo hồ sơ riêng cho từng nhân vật; bấm 'Sao lưu' để tạo bản sao lưu dữ liệu an toàn.\n" +
+                         "• Tạo & Xóa: Bấm '+ Tạo Slot' để tạo hồ sơ riêng cho từng nhân vật; bấm 'Xóa' để dọn bớt các slot không còn dùng.\n" +
                          "• Load Save (Nạp Save VIP): Bấm 'Load Save' để chọn file save bất kỳ bên ngoài (file save VIP, save chia sẻ từ bạn bè...), nhập tên hồ sơ mới và lưu vào map để sử dụng ngay.\n" +
+                         "• Clean Data (Dọn dẹp Dữ liệu): Bấm 'Clean Data' để dọn dẹp các file rác phát sinh trong quá trình chơi (bộ nhớ đệm Map WPM, thùng rác save _Trash, lịch sử snapshot _History, log lỗi game...) giúp giải phóng dung lượng đĩa và tối ưu hiệu suất.\n" +
                          "• Chỉnh Map Level (1-100): Nhập cấp độ mong muốn (từ 1 đến 100) vào ô nhập và bấm 'Lưu' (hoặc nhấn phím Enter) để kích hoạt cấp độ map (đồng bộ chuẩn DzAPI & KKAPI).\n" +
                          "• Bật/Tắt Rank 1: Bấm nút 'Rank 1' (viền nút sáng màu vàng kim khi bật) để kích hoạt quyền lợi Top 1 bảng xếp hạng trong các map RPG hỗ trợ."
                 }

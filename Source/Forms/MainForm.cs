@@ -25,7 +25,7 @@ namespace Phanmemwar3.Forms
         private ModernComboBox cboMaps;
         private ModernComboBox cboSlots;
         private ModernButton btnNewSlot;
-        private ModernButton btnBackupSlot;
+        private ModernButton btnCleanData;
         private ModernButton btnDeleteSlot;
         private ModernButton btnLoadSave;
         private ModernInputCapsule capsuleLevel;
@@ -301,17 +301,17 @@ namespace Phanmemwar3.Forms
             btnNewSlot = ActionButton("newSlot", NewSlot);
             btnNewSlot.BackColorNormal = Color.FromArgb(28, 52, 82); btnNewSlot.BackColorHover = Color.FromArgb(42, 78, 120);
             btnNewSlot.BorderColor = Color.FromArgb(50, 110, 180);
-            btnBackupSlot = ActionButton("backupSlot", BackupSlot);
-            btnBackupSlot.BackColorNormal = Color.FromArgb(28, 52, 82); btnBackupSlot.BackColorHover = Color.FromArgb(42, 78, 120);
-            btnBackupSlot.BorderColor = Color.FromArgb(50, 110, 180);
-            btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot);
-            btnDeleteSlot.BackColorHover = Color.FromArgb(100, 30, 30); btnDeleteSlot.BorderColor = Color.FromArgb(130, 45, 45);
             btnLoadSave = ActionButton("loadSave", LoadSaveSlot);
             btnLoadSave.BackColorNormal = Color.FromArgb(28, 52, 82); btnLoadSave.BackColorHover = Color.FromArgb(42, 78, 120);
             btnLoadSave.BorderColor = Color.FromArgb(50, 110, 180);
-            foreach (var b in new[] { btnNewSlot, btnBackupSlot, btnDeleteSlot, btnLoadSave }) b.Margin = new Padding(2, 2, 2, 2);
-            slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnBackupSlot, 1, 0);
-            slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnLoadSave, 1, 1);
+            btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot);
+            btnDeleteSlot.BackColorHover = Color.FromArgb(100, 30, 30); btnDeleteSlot.BorderColor = Color.FromArgb(130, 45, 45);
+            btnCleanData = ActionButton("cleanData", OpenCleanData);
+            btnCleanData.BackColorNormal = Color.FromArgb(28, 52, 82); btnCleanData.BackColorHover = Color.FromArgb(42, 78, 120);
+            btnCleanData.BorderColor = Color.FromArgb(50, 110, 180);
+            foreach (var b in new[] { btnNewSlot, btnLoadSave, btnDeleteSlot, btnCleanData }) b.Margin = new Padding(2, 2, 2, 2);
+            slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnLoadSave, 1, 0);
+            slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnCleanData, 1, 1);
 
             capsuleLevel = new ModernInputCapsule
             {
@@ -505,7 +505,7 @@ namespace Phanmemwar3.Forms
         private void UpdateActionTips()
         {
             foreach (var button in new[] { btnBrowse, btnInGameOptions, btnGuide, btnCheckUpdate, btnBrowseMap,
-                btnNewSlot, btnBackupSlot, btnDeleteSlot, btnLoadSave, btnScanPlugins,
+                btnNewSlot, btnCleanData, btnDeleteSlot, btnLoadSave, btnScanPlugins,
                 btnConfigYDWE, btnCloseGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
             _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
@@ -519,6 +519,7 @@ namespace Phanmemwar3.Forms
             _actionTip.SetToolTip(btnOpenFolder, T("openFolderHint"));
             _actionTip.SetToolTip(btnScanPlugins, T("scanPluginsHint"));
             _actionTip.SetToolTip(btnLoadSave, T("tipLoadSave"));
+            _actionTip.SetToolTip(btnCleanData, T("tipCleanData"));
             _actionTip.SetToolTip(btnDeleteSlot, T("deleteSlotHint"));
             _actionTip.SetToolTip(btnConfigYDWE, T("ydweSettingsHint"));
             if (btnSetLevel != null) _actionTip.SetToolTip(btnSetLevel, T("tipSetLevel"));
@@ -710,7 +711,7 @@ namespace Phanmemwar3.Forms
                 btnNewSlot.Enabled = false;
                 btnLoadSave.Enabled = false;
                 btnDeleteSlot.Enabled = false;
-                btnBackupSlot.Enabled = false;
+                btnCleanData.Enabled = true;
                 UpdateSlotLevelAndRank();
                 return;
             }
@@ -722,8 +723,8 @@ namespace Phanmemwar3.Forms
             {
                 statusLabel.Text = string.Format(T("savePathIssue"), ex.Message);
                 btnDeleteSlot.Enabled = false;
-                btnBackupSlot.Enabled = false;
                 btnLoadSave.Enabled = false;
+                btnCleanData.Enabled = true;
                 UpdateSlotLevelAndRank();
                 return;
             }
@@ -736,7 +737,7 @@ namespace Phanmemwar3.Forms
             btnNewSlot.Enabled = true;
             btnLoadSave.Enabled = true;
             btnDeleteSlot.Enabled = slots.Count > 0;
-            btnBackupSlot.Enabled = slots.Count > 0;
+            btnCleanData.Enabled = true;
             string gameDir = txtWar3Path.TextContent.Trim();
             string relativeMap = Directory.Exists(gameDir) ? Path.GetRelativePath(gameDir, map.Path) : map.Name;
             if (relativeMap.Length >= 54 || map.Path.Length >= 240)
@@ -753,11 +754,11 @@ namespace Phanmemwar3.Forms
             catch (Exception ex) { MessageBox.Show(this, ex.Message, T("errorTitle")); }
         }
 
-        private void BackupSlot(object? sender, EventArgs e)
+        private void OpenCleanData(object? sender, EventArgs e)
         {
-            if (cboMaps.SelectedItem is not MapEntry map || cboSlots.SelectedItem is not SaveSlot slot) return;
-            try { var backup = _mapSaves.Backup(map, slot); RefreshSlots(backup.Path); statusLabel.Text = T("backupDone"); }
-            catch (Exception ex) { MessageBox.Show(this, ex.Message, T("errorTitle")); }
+            using var cf = new CleanDataForm(_config, txtWar3Path.TextContent.Trim());
+            cf.ShowDialog(this);
+            RefreshSlots();
         }
 
         private void DeleteSlot(object? sender, EventArgs e)
@@ -1160,7 +1161,7 @@ namespace Phanmemwar3.Forms
             btnEnterWar3.Enabled = enabled;
             btnNewSlot.Enabled = enabled && cboMaps.SelectedItem is MapEntry;
             btnLoadSave.Enabled = enabled && cboMaps.SelectedItem is MapEntry;
-            btnBackupSlot.Enabled = enabled && cboSlots.Items.Count > 0;
+            btnCleanData.Enabled = enabled;
             btnDeleteSlot.Enabled = enabled && cboSlots.Items.Count > 0;
             btnScanPlugins.Enabled = enabled;
             btnConfigYDWE.Enabled = enabled;
