@@ -207,6 +207,15 @@ namespace Phanmemwar3.Tests
                 Assert(File.ReadAllText(restored.Path).Contains("Level=51"), "Slot synced with new game progress");
                 Assert(File.ReadAllText(rootIni).Contains("OldData=1"), "Previous root INI restored after session ends");
 
+                // Test external save import (Load Save feature)
+                string externalVipSave = Path.Combine(tempDir, "VIP_Shared_Save.ini");
+                File.WriteAllText(externalVipSave, "[VIP]\nSupreme=1\n[DzAPI]\nDzAPI_Map_GetMapLevel=99\nDzAPI_Map_GetMapLevelRank=1\nSSV-0-TOKEN=VIP123\n");
+                var importedSlot = mgr.Create(map, "Slot_VIP_Imported", externalVipSave);
+                Assert(File.Exists(importedSlot.Path), "Imported external VIP save slot created on disk");
+                Assert(File.ReadAllText(importedSlot.Path).Contains("Supreme=1"), "Imported slot preserves custom sections");
+                Assert(MapSaveManager.ReadMapLevel(importedSlot.Path) == 99, "Imported slot reads Map Level 99");
+                Assert(MapSaveManager.ReadMapLevelRank(importedSlot.Path) == true, "Imported slot reads Rank 1 as true");
+
                 // Check History
                 string historyDir = Path.Combine(mgr.MapDirectory(map), "_History");
                 Assert(Directory.Exists(historyDir) && Directory.EnumerateFiles(historyDir).Any(), "_History archive created for pre-sync snapshot");
@@ -434,6 +443,7 @@ namespace Phanmemwar3.Tests
             {
                 "appName", "browse", "selectWar3Folder", "pathHintShort", "mapSaveTitle",
                 "selectMap", "newSlot", "backupSlot", "deleteSlot", "restoreSlot",
+                "loadSave", "tipLoadSave", "loadSaveTitle", "loadSlotPrompt", "loadSlotTitle", "loadSlotDone", "selectMapFirst",
                 "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
                 "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
                 "btnCheckUpdate", "btnGuide", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnEnterWar3", "btnRunGame", "statusLabel",
@@ -608,6 +618,13 @@ namespace Phanmemwar3.Tests
                     Assert(!rank1Btn!.Enabled, "btnRank1 disabled when no slot is selected");
                     Assert(!mapLevelTxt!.Enabled, "txtMapLevel disabled when no slot is selected");
                     Assert(!capsule!.Enabled, "capsuleLevel disabled when no slot is selected");
+
+                    var loadSaveBtn = FindControl(mainForm, c => c.Tag as string == "loadSave") as Phanmemwar3.Forms.ModernButton;
+                    Assert(loadSaveBtn != null, "btnLoadSave exists in slot actions");
+                    Assert(!string.IsNullOrEmpty(loadSaveBtn?.Text), "btnLoadSave has localized text");
+                    Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(loadSaveBtn!)), "btnLoadSave has informative tooltip");
+                    var newSlotBtn = FindControl(mainForm, c => c.Tag as string == "newSlot") as Phanmemwar3.Forms.ModernButton;
+                    Assert(loadSaveBtn!.Enabled == newSlotBtn!.Enabled, "btnLoadSave enablement matches btnNewSlot according to map selection");
 
                     using var guideForm = new Phanmemwar3.Forms.GuideForm(cfg);
                     Assert(guideForm.Icon != null, "GuideForm has valid window Icon");

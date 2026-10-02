@@ -27,7 +27,7 @@ namespace Phanmemwar3.Forms
         private ModernButton btnNewSlot;
         private ModernButton btnBackupSlot;
         private ModernButton btnDeleteSlot;
-        private ModernButton btnRestoreSlot;
+        private ModernButton btnLoadSave;
         private ModernInputCapsule capsuleLevel;
         private ModernTextBox txtMapLevel;
         private ModernButton btnSetLevel;
@@ -306,10 +306,12 @@ namespace Phanmemwar3.Forms
             btnBackupSlot.BorderColor = Color.FromArgb(50, 110, 180);
             btnDeleteSlot = ActionButton("deleteSlot", DeleteSlot);
             btnDeleteSlot.BackColorHover = Color.FromArgb(100, 30, 30); btnDeleteSlot.BorderColor = Color.FromArgb(130, 45, 45);
-            btnRestoreSlot = ActionButton("restoreSlot", RestoreSlot);
-            foreach (var b in new[] { btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot }) b.Margin = new Padding(2, 2, 2, 2);
+            btnLoadSave = ActionButton("loadSave", LoadSaveSlot);
+            btnLoadSave.BackColorNormal = Color.FromArgb(28, 52, 82); btnLoadSave.BackColorHover = Color.FromArgb(42, 78, 120);
+            btnLoadSave.BorderColor = Color.FromArgb(50, 110, 180);
+            foreach (var b in new[] { btnNewSlot, btnBackupSlot, btnDeleteSlot, btnLoadSave }) b.Margin = new Padding(2, 2, 2, 2);
             slotActions.Controls.Add(btnNewSlot, 0, 0); slotActions.Controls.Add(btnBackupSlot, 1, 0);
-            slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnRestoreSlot, 1, 1);
+            slotActions.Controls.Add(btnDeleteSlot, 0, 1); slotActions.Controls.Add(btnLoadSave, 1, 1);
 
             capsuleLevel = new ModernInputCapsule
             {
@@ -503,7 +505,7 @@ namespace Phanmemwar3.Forms
         private void UpdateActionTips()
         {
             foreach (var button in new[] { btnBrowse, btnInGameOptions, btnGuide, btnCheckUpdate, btnBrowseMap,
-                btnNewSlot, btnBackupSlot, btnDeleteSlot, btnRestoreSlot, btnScanPlugins,
+                btnNewSlot, btnBackupSlot, btnDeleteSlot, btnLoadSave, btnScanPlugins,
                 btnConfigYDWE, btnCloseGame, btnOpenFolder })
                 if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
             _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
@@ -516,7 +518,7 @@ namespace Phanmemwar3.Forms
             _actionTip.SetToolTip(btnBrowseMap, T("browseMapHint"));
             _actionTip.SetToolTip(btnOpenFolder, T("openFolderHint"));
             _actionTip.SetToolTip(btnScanPlugins, T("scanPluginsHint"));
-            _actionTip.SetToolTip(btnRestoreSlot, T("restoreSlotHint"));
+            _actionTip.SetToolTip(btnLoadSave, T("tipLoadSave"));
             _actionTip.SetToolTip(btnDeleteSlot, T("deleteSlotHint"));
             _actionTip.SetToolTip(btnConfigYDWE, T("ydweSettingsHint"));
             if (btnSetLevel != null) _actionTip.SetToolTip(btnSetLevel, T("tipSetLevel"));
@@ -705,8 +707,10 @@ namespace Phanmemwar3.Forms
             cboSlots.Items.Clear();
             if (cboMaps.SelectedItem is not MapEntry map)
             {
+                btnNewSlot.Enabled = false;
+                btnLoadSave.Enabled = false;
                 btnDeleteSlot.Enabled = false;
-                btnRestoreSlot.Enabled = false;
+                btnBackupSlot.Enabled = false;
                 UpdateSlotLevelAndRank();
                 return;
             }
@@ -719,7 +723,7 @@ namespace Phanmemwar3.Forms
                 statusLabel.Text = string.Format(T("savePathIssue"), ex.Message);
                 btnDeleteSlot.Enabled = false;
                 btnBackupSlot.Enabled = false;
-                btnRestoreSlot.Enabled = false;
+                btnLoadSave.Enabled = false;
                 UpdateSlotLevelAndRank();
                 return;
             }
@@ -729,9 +733,10 @@ namespace Phanmemwar3.Forms
                 cboSlots.SelectedItem = slots.FirstOrDefault(x => x.Path == select) ?? slots[0];
             }
             UpdateSlotLevelAndRank();
+            btnNewSlot.Enabled = true;
+            btnLoadSave.Enabled = true;
             btnDeleteSlot.Enabled = slots.Count > 0;
             btnBackupSlot.Enabled = slots.Count > 0;
-            btnRestoreSlot.Enabled = _mapSaves.HasDeleted(map);
             string gameDir = txtWar3Path.TextContent.Trim();
             string relativeMap = Directory.Exists(gameDir) ? Path.GetRelativePath(gameDir, map.Path) : map.Name;
             if (relativeMap.Length >= 54 || map.Path.Length >= 240)
@@ -769,16 +774,37 @@ namespace Phanmemwar3.Forms
             catch (Exception ex) { MessageBox.Show(this, ex.Message, T("errorTitle")); }
         }
 
-        private void RestoreSlot(object? sender, EventArgs e)
+        private void LoadSaveSlot(object? sender, EventArgs e)
         {
-            if (cboMaps.SelectedItem is not MapEntry map) return;
+            if (cboMaps.SelectedItem is not MapEntry map)
+            {
+                MessageBox.Show(this, T("selectMapFirst"), T("noticeTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var dialog = new OpenFileDialog
+            {
+                Title = T("loadSaveTitle"),
+                Filter = T("loadSaveFilter"),
+                CheckFileExists = true
+            };
+
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            string defaultName = Path.GetFileNameWithoutExtension(dialog.FileName);
+            string? name = Microsoft.VisualBasic.Interaction.InputBox(T("loadSlotPrompt"), T("loadSlotTitle"), defaultName);
+            if (string.IsNullOrWhiteSpace(name)) return;
+
             try
             {
-                var slot = _mapSaves.RestoreLatestDeleted(map);
+                var slot = _mapSaves.Create(map, name, dialog.FileName);
                 RefreshSlots(slot.Path);
-                statusLabel.Text = T("slotRestored");
+                statusLabel.Text = string.Format(T("loadSlotDone"), slot.ToString());
             }
-            catch (Exception ex) { MessageBox.Show(this, ex.Message, T("errorTitle")); }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, T("errorTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void UpdateRank1Appearance()
@@ -1132,10 +1158,10 @@ namespace Phanmemwar3.Forms
         {
             btnRunGame.Enabled = enabled;
             btnEnterWar3.Enabled = enabled;
-            btnNewSlot.Enabled = enabled;
+            btnNewSlot.Enabled = enabled && cboMaps.SelectedItem is MapEntry;
+            btnLoadSave.Enabled = enabled && cboMaps.SelectedItem is MapEntry;
             btnBackupSlot.Enabled = enabled && cboSlots.Items.Count > 0;
             btnDeleteSlot.Enabled = enabled && cboSlots.Items.Count > 0;
-            btnRestoreSlot.Enabled = enabled && cboMaps.SelectedItem is MapEntry map && _mapSaves.HasDeleted(map);
             btnScanPlugins.Enabled = enabled;
             btnConfigYDWE.Enabled = enabled;
             cboMaps.Enabled = enabled;
