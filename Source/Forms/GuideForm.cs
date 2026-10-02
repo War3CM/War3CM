@@ -178,9 +178,9 @@ namespace Phanmemwar3.Forms
             {
                 Text = lang switch
                 {
-                    "CN" => "准备纯净版游戏、更新KKWE插件以及安全管理RPG独立存档的分步教程。",
-                    "EN" => "Step-by-step instructions for clean game setup, plugin updates, and RPG save slots.",
-                    _ => "Chuẩn bị bộ game sạch 1.27.5, cập nhật plugin KKWE và tối ưu nạp map / đồng bộ Save Slot."
+                    "CN" => "准备纯净版游戏、更新KKWE插件、载入VIP存档、定制地图等级以及自动同步进度的分步教程。",
+                    "EN" => "Step-by-step instructions for clean game setup, plugin updates, VIP save loading, Map Level, and automatic progress sync.",
+                    _ => "Chuẩn bị bộ game sạch 1.27.5, cập nhật plugin KKWE, nạp Save VIP, chỉnh Map Level và đồng bộ Save Slot."
                 },
                 Font = new Font("Segoe UI", 9.25f),
                 ForeColor = Color.FromArgb(170, 195, 225),
@@ -441,21 +441,27 @@ namespace Phanmemwar3.Forms
             stack.Controls.Add(CreateStepCard(
                 lang switch
                 {
-                    "CN" => "6. 选择地图与创建独立存档槽 (Save Slot)",
-                    "EN" => "6. Select Map & Create Save Slots",
-                    _ => "6. Chọn Map và tạo Hồ sơ Lưu điểm (Save Slots)"
+                    "CN" => "6. 存档管理、载入外部/VIP存档、地图等级 (1-100) 与 Rank 1",
+                    "EN" => "6. Save Profiles, Load External Save (VIP), Map Level (1-100) & Rank 1",
+                    _ => "6. Quản lý Hồ sơ Save, Nạp Save VIP (Load Save), Cấp độ Map (1-100) & Rank 1"
                 },
                 lang switch
                 {
                     "CN" => "• 在【选择地图】中选取想要体验的地图（亦可直接从桌面拖拽地图文件放入启动器）。\n" +
-                            "• 点击【+ 新建槽】为当前角色或新开局创建专属独立存档。\n" +
-                            "• 支持随时【备份】存档、误删【恢复】以及历史快照归档，换电脑也不丢进度。",
+                            "• 创建与备份：点击【+ 新建槽】为当前角色创建独立存档；点击【备份】随时生成进度快照。\n" +
+                            "• 载入存档 (Load Save)：点击【Load Save】即可选取电脑中任意外部存档文件（如 VIP 存档、好友分享的存档等），输入新存档名称后直接导入使用。\n" +
+                            "• 地图等级 (Map Level 1-100)：在输入框中填入期望等级（1 至 100）并点击【Lưu / Set】（或按 Enter 回车键），系统自动同步至 DzAPI 与 KKAPI 格式。\n" +
+                            "• 切换 Rank 1：点击【Rank 1】按钮（激活时边框呈耀眼金黄色），一键开启地图最高天梯排名与特权。",
                     "EN" => "• Select your map from the dropdown (or drag & drop map files directly onto the launcher).\n" +
-                            "• Click '+ New Slot' to create an isolated save slot for your hero or playthrough.\n" +
-                            "• Use 'Backup', 'Delete', and 'Restore' anytime with automated snapshot history.",
+                            "• Create & Backup: Click '+ New Slot' to create an isolated save for each character; use 'Backup' to create snapshots.\n" +
+                            "• Load Save (Import VIP Save): Click 'Load Save' to pick any external save file (.ini, .txt, VIP shared saves), enter a new profile name, and immediately use it in the selected map.\n" +
+                            "• Map Level (1-100): Enter your desired level (1 to 100) in the input box and click 'Set' (or press Enter) to apply it across DzAPI and KKAPI standards.\n" +
+                            "• Toggle Rank 1: Click 'Rank 1' (turns Amber Gold when active) to enable top-rank perks and leaderboard privileges in supported maps.",
                     _ => "• Tại ô 'Chọn Map', chọn bản đồ bạn muốn chơi (hoặc kéo thả file map trực tiếp vào cửa sổ phần mềm).\n" +
-                         "• Bấm nút '+ Tạo Slot' để tạo hồ sơ lưu điểm riêng cho nhân vật hoặc lượt chơi của bạn.\n" +
-                         "• Bạn có thể tạo nhiều slot, sao lưu dữ liệu với nút 'Sao lưu' hoặc khôi phục slot đã xóa với nút 'Khôi phục'."
+                         "• Tạo & Sao lưu: Bấm '+ Tạo Slot' để tạo hồ sơ riêng cho từng nhân vật; bấm 'Sao lưu' để tạo bản sao lưu dữ liệu an toàn.\n" +
+                         "• Load Save (Nạp Save VIP): Bấm 'Load Save' để chọn file save bất kỳ bên ngoài (file save VIP, save chia sẻ từ bạn bè...), nhập tên hồ sơ mới và lưu vào map để sử dụng ngay.\n" +
+                         "• Chỉnh Map Level (1-100): Nhập cấp độ mong muốn (từ 1 đến 100) vào ô nhập và bấm 'Lưu' (hoặc nhấn phím Enter) để kích hoạt cấp độ map (đồng bộ chuẩn DzAPI & KKAPI).\n" +
+                         "• Bật/Tắt Rank 1: Bấm nút 'Rank 1' (viền nút sáng màu vàng kim khi bật) để kích hoạt quyền lợi Top 1 bảng xếp hạng trong các map RPG hỗ trợ."
                 }
             ));
 
@@ -480,10 +486,10 @@ namespace Phanmemwar3.Forms
                             "• Enable 'WideScreen 16:9' and 'Fix Aspect Ratio' for optimal visuals.\n" +
                             "• Enable 'Fast Load' and 'Mute Save Value' to block annoying score popups.",
                     _ => "Bấm nút '⚙ TÙY CHỌN TRONG GAME':\n" +
-                         "• Đổi 'Tên người dùng trong game' (User Name) để làm định danh lưu điểm RPG.\n" +
-                         "• Tích chọn: 'Khóa chuột trong cửa sổ' (chống trượt chuột ra ngoài màn hình khi lia map).\n" +
-                         "• Tích chọn: 'Sửa tỉ lệ 4:3', 'Màn hình rộng 16:9', 'Tải map nhanh'.\n" +
-                         "• Tích chọn: 'Tắt hiển thị thông báo Save Value' (chặn spam chữ hệ thống khi tự động lưu điểm)."
+                          "• Đổi 'Tên người dùng trong game' (User Name) để làm định danh lưu điểm RPG.\n" +
+                          "• Tích chọn: 'Khóa chuột trong cửa sổ' (chống trượt chuột ra ngoài màn hình khi lia map).\n" +
+                          "• Tích chọn: 'Sửa tỉ lệ 4:3', 'Màn hình rộng 16:9', 'Tải map nhanh'.\n" +
+                          "• Tích chọn: 'Tắt hiển thị thông báo Save Value' (chặn spam chữ hệ thống khi tự động lưu điểm)."
                 }
             ));
 
@@ -491,21 +497,21 @@ namespace Phanmemwar3.Forms
             stack.Controls.Add(CreateStepCard(
                 lang switch
                 {
-                    "CN" => "8. 一键启动并自动同步 (PLAY NOW)",
-                    "EN" => "8. Launch & Automatic Sync (PLAY NOW)",
-                    _ => "8. Khởi chạy game & Tự động đồng bộ (PLAY NOW)"
+                    "CN" => "8. 启动游戏与自动同步 (Play Map / Play War3)",
+                    "EN" => "8. Launch Game & Automatic Sync (Play Map / Play War3)",
+                    _ => "8. Khởi chạy game & Tự động đồng bộ (Play Map / Play War3)"
                 },
                 lang switch
                 {
                     "CN" => "• 选择图形渲染 API (OpenGL / DirectX) 及全屏/无边框/窗口模式。\n" +
-                            "• 点击【▶ 开始】：平台将使用安全短路径加载地图并挂载所选存档。\n" +
-                            "• 游戏退出时，平台全自动拦截并同步最新进度回你的独立槽中，安全可靠！",
-                    "EN" => "• Select Graphics (OpenGL / DirectX) and Display Mode (Full Screen / Borderless / Windowed).\n" +
-                            "• Click '▶ PLAY NOW': The launcher stages the map safely and mounts your save slot.\n" +
-                            "• Upon exiting game, progress is automatically synced back to your save profile!",
+                            "• Play Map（直接进图）：一键载入所选地图与对应存档，并启用安全短路径缓冲。退出游戏时自动同步最新进度回存档槽中，安全可靠！\n" +
+                            "• Play War3（主菜单）：携带完整插件进入魔兽3主界面，用于局域网联机或游戏内设置。",
+                    "EN" => "• Choose Graphics (OpenGL / DirectX) and Display Mode (Full Screen / Borderless / Windowed).\n" +
+                            "• Play Map: Directly launches the selected map with your active save slot mounted. Progress automatically syncs when exiting game.\n" +
+                            "• Play War3: Launches Warcraft III with all active plugins directly to Main Menu for LAN games or settings.",
                     _ => "• Chọn loại đồ họa (OpenGL hoặc DirectX) và chế độ hiển thị (Full Screen, Borderless, Windowed).\n" +
-                         "• Bấm '▶ CHƠI': Phần mềm sẽ tự động nạp map theo đường dẫn rút gọn an toàn (chống lỗi tràn bộ nhớ 54 ký tự), nạp hồ sơ Save Slot vào game.\n" +
-                         "• Khi bạn thoát game, phần mềm sẽ tự động phát hiện và đồng bộ tiến trình mới nhất vào Save Slot của bạn!"
+                         "• Play Map: Bấm nút để vào thẳng bản đồ cùng Save Slot đã chọn. Hệ thống tự động tạo bản đệm ngắn an toàn chống giới hạn 54 ký tự và tự động đồng bộ tiến trình khi thoát game.\n" +
+                         "• Play War3: Bấm nút để khởi chạy Warcraft III cùng đầy đủ plugin vào Menu chính (sảnh LAN hoặc thiết lập game)."
                 }
             ));
         }
