@@ -8,4 +8,7 @@ Profiles/
 *.png
 *.old
 *.bak
+*.token
+tools/
+
 
