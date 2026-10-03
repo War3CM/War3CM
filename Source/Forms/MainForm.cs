@@ -56,12 +56,14 @@ namespace Phanmemwar3.Forms
         private ModernButton btnDiscord;
         private ModernButton btnYouTube;
         private ModernButton btnInGameOptions;
+        private ModernButton btnDonate;
         private Label statusLabel;
         private Label lblServerInfo;
         private string? _cachedServerVersion;
 
         public const string DISCORD_URL = "https://discord.gg/wXtdt7PwpT";
         public const string YOUTUBE_URL = "https://www.youtube.com/channel/UCw9col-g45AuA2Xhjwps7Lw/";
+        public const string DONATE_URL = "https://paypal.me/Mr007007";
 
 
         public MainForm()
@@ -419,10 +421,43 @@ namespace Phanmemwar3.Forms
             cboDisplay = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 2, 0, 2) };
             cboDisplay.Items.AddRange(new object[] { T("fullScreen"), T("borderless"), T("windowed") }); cboDisplay.SelectedIndex = 0;
             optionBody.Controls.Add(cboDisplay, 0, 3);
+            var optionsActions = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = new Padding(0, 4, 0, 0)
+            };
+            optionsActions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            optionsActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            optionsActions.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+
             btnInGameOptions = ActionButton("btnInGameOptions", BtnSettings_Click);
             btnInGameOptions.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
-            btnInGameOptions.Margin = new Padding(0, 6, 0, 2);
-            optionBody.Controls.Add(btnInGameOptions, 0, 4);
+            btnInGameOptions.Margin = new Padding(0, 0, 0, 2);
+            optionsActions.Controls.Add(btnInGameOptions, 0, 0);
+
+            btnDonate = new ModernButton
+            {
+                Text = T("btnDonate"),
+                Tag = "btnDonate",
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 2, 0, 0),
+                BorderRadius = 7,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(255, 238, 175),
+                BackColorNormal = Color.FromArgb(20, 45, 80),
+                BackColorHover = Color.FromArgb(32, 72, 126),
+                BackColorPressed = Color.FromArgb(12, 30, 56),
+                GradientEndColor = Color.FromArgb(12, 26, 48),
+                GradientEndColorHover = Color.FromArgb(18, 42, 74),
+                BorderColor = Color.FromArgb(235, 175, 45)
+            };
+            btnDonate.Click += (s, e) => OpenExternalLink(DONATE_URL);
+            _actionTip.SetToolTip(btnDonate, T("tipDonate"));
+            optionsActions.Controls.Add(btnDonate, 0, 1);
+
+            optionBody.Controls.Add(optionsActions, 0, 4);
 
             var play = Section("launchTitle", out var playBody); play.Margin = new Padding(14, 5, 14, 5);
             play.Padding = new Padding(15, 6, 15, 6);
@@ -504,10 +539,11 @@ namespace Phanmemwar3.Forms
 
         private void UpdateActionTips()
         {
-            foreach (var button in new[] { btnBrowse, btnInGameOptions, btnGuide, btnCheckUpdate, btnBrowseMap,
+            foreach (var button in new[] { btnBrowse, btnInGameOptions, btnDonate, btnGuide, btnCheckUpdate, btnBrowseMap,
                 btnNewSlot, btnCleanData, btnDeleteSlot, btnLoadSave, btnScanPlugins,
                 btnConfigYDWE, btnCloseGame, btnOpenFolder })
-                if (button.Tag is string key) _actionTip.SetToolTip(button, T(key));
+                if (button != null && button.Tag is string key) _actionTip.SetToolTip(button, T(key));
+            if (btnDonate != null) _actionTip.SetToolTip(btnDonate, T("tipDonate"));
             _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
             _actionTip.SetToolTip(btnRunGame, T("tipRunGame"));
             _actionTip.SetToolTip(btnGuide, T("guideHint"));

@@ -546,7 +546,7 @@ namespace Phanmemwar3.Tests
                 "loadSave", "tipLoadSave", "loadSaveTitle", "loadSlotPrompt", "loadSlotTitle", "loadSlotDone", "selectMapFirst",
                 "pluginOptions", "selectPlugin", "btnConfig", "scanPlugins", "gameOptions",
                 "openGL", "fullScreen", "borderless", "windowed", "instance", "btnSettings",
-                "btnCheckUpdate", "btnGuide", "btnInGameOptions", "muteShort", "launchHint", "btnCloseGame", "btnEnterWar3", "btnRunGame", "statusLabel",
+                "btnCheckUpdate", "btnGuide", "btnInGameOptions", "btnDonate", "muteShort", "launchHint", "btnCloseGame", "btnEnterWar3", "btnRunGame", "statusLabel",
                 "ready", "serverUnknown", "serverVersion", "openFolderHint", "settingsTitle",
                 "userName", "languageLabel", "btnCancel", "btnSaveSettings", "restoreRegistry",
                 "guideHint", "guideTitle", "btnOpenDrive", "btnCopyLink", "linkCopied", "btnClose",
@@ -645,6 +645,12 @@ namespace Phanmemwar3.Tests
                     // Check btnInGameOptions exists in optionBody and has ample width
                     var inGameBtn = FindControl(mainForm, c => c.Tag as string == "btnInGameOptions");
                     Assert(inGameBtn != null && inGameBtn.Width >= 300, "btnInGameOptions exists in renderer card with width >= 300px");
+
+                    // Check btnDonate exists in optionBody, has ample width, has PayPal link and tooltip
+                    var donateBtn = FindControl(mainForm, c => c.Tag as string == "btnDonate") as Phanmemwar3.Forms.ModernButton;
+                    Assert(donateBtn != null && donateBtn.Width >= 300, "btnDonate exists in renderer card with width >= 300px");
+                    Assert(donateBtn != null && donateBtn.Text.Contains("paypal.me/Mr007007"), "btnDonate displays paypal.me link in text");
+                    Assert(donateBtn != null && !string.IsNullOrEmpty(actionTip?.GetToolTip(donateBtn)), "btnDonate has informative tooltip");
 
                     // Check btnGuide exists in header actions
                     var guideBtn = FindControl(mainForm, c => c.Tag as string == "btnGuide");
