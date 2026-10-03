@@ -19,7 +19,7 @@ namespace Phanmemwar3.Core
 
     public static class AppUpdater
     {
-        public const string CURRENT_VERSION = "1.0.1";
+        public const string CURRENT_VERSION = "1.0.2";
         public const string GITHUB_REPO = "War3CM/War3CM";
         public const string RELEASES_API_URL = "https://api.github.com/repos/War3CM/War3CM/releases/latest";
         public const string TARGET_EXE_NAME = "WarcraftPlatformManager.exe";
@@ -310,16 +310,31 @@ namespace Phanmemwar3.Core
         {
             try
             {
+                string dir = Path.GetDirectoryName(exePath) ?? AppDomain.CurrentDomain.BaseDirectory;
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = exePath,
+                    WorkingDirectory = dir,
                     UseShellExecute = true
                 });
                 Environment.Exit(0);
             }
             catch
             {
-                // If start fails, do not exit immediately
+                try
+                {
+                    string dir = Path.GetDirectoryName(exePath) ?? AppDomain.CurrentDomain.BaseDirectory;
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c timeout /t 1 /nobreak >nul & start \"\" \"{exePath}\"",
+                        WorkingDirectory = dir,
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    Environment.Exit(0);
+                }
+                catch { }
             }
         }
     }

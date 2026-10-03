@@ -633,6 +633,17 @@ namespace Phanmemwar3.Tests
                     Assert(updateBtn != null, "btnCheckUpdate exists in header actions");
                     Assert(!string.IsNullOrEmpty(updateBtn?.Text), "btnCheckUpdate has localized text");
                     Assert(updateBtn?.Height >= 28, "btnCheckUpdate height is >= 28px (not vertically clipped)");
+                    Assert(updateBtn?.Width >= 125, "btnCheckUpdate width is >= 125px (prevents ellipsis on Update Plugin)");
+
+                    // Check btnAbout exists in header actions
+                    var aboutBtn = FindControl(mainForm, c => c.Tag as string == "btnAbout");
+                    Assert(aboutBtn != null, "btnAbout exists in header actions");
+                    Assert(aboutBtn?.Text == "?", "btnAbout text is '?'");
+                    Assert(aboutBtn?.Height >= 28, "btnAbout height is >= 28px");
+
+                    // Check AboutForm initializes properly
+                    using var aboutForm = new Phanmemwar3.Forms.AboutForm(cfg);
+                    Assert(aboutForm.Text != null && aboutForm.Text.Contains("Warcraft Platform Manager"), "AboutForm title initialized");
 
                     // Check lblServerInfo in footer play card has ample height to prevent cut-off
                     var serverLbl = FindControl(mainForm, c => c is System.Windows.Forms.Label l && (l.Text.Contains("KKWE") || l.Text.Contains("Check for updates") || l.Text.Contains("Sẵn sàng")));
@@ -882,7 +893,7 @@ namespace Phanmemwar3.Tests
 
             // CurrentVersion and constant check
             Assert(!string.IsNullOrEmpty(Phanmemwar3.Core.AppUpdater.CurrentVersion), "CurrentVersion is non-empty");
-            Assert(Phanmemwar3.Core.AppUpdater.CurrentVersion == "1.0.1", "CurrentVersion is 1.0.1");
+            Assert(Phanmemwar3.Core.AppUpdater.CurrentVersion == "1.0.2", "CurrentVersion is 1.0.2");
 
             // Changelog formatting check
             string rawMarkdown = "# Warcraft Platform Manager v1.0.1\n| Col1 | Col2 |\n|---|---|\n- **Feature 1**: First item\n- **Feature 2**: Second item\n*Keywords: war3 launcher*";
@@ -894,8 +905,9 @@ namespace Phanmemwar3.Tests
             Assert(!formatted.Contains("Keywords:"), "Footer keywords omitted from dialog");
 
             // 1. Version comparison logic
+            Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.3", "1.0.2"), "v1.0.3 is newer than 1.0.2");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.2", "1.0.2"), "v1.0.2 is not newer than 1.0.2");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.2", "1.0.1"), "v1.0.2 is newer than 1.0.1");
-            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.1", "1.0.1"), "v1.0.1 is not newer than 1.0.1");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.1", "1.0.0"), "v1.0.1 is newer than 1.0.0");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("1.1.0", "1.0.0"), "1.1.0 is newer than 1.0.0");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v2.0.0", "1.9.9"), "v2.0.0 is newer than 1.9.9");
@@ -952,7 +964,7 @@ namespace Phanmemwar3.Tests
             // 7. Verify all 10 languages have app update localization keys
             string[] supportedLangs = { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" };
             var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
-            string[] requiredKeys = { "appUpdateAvailable", "appUpdateTitle", "appUpdating", "appUpdateFailed", "appUpToDate", "tipCheckUpdate" };
+            string[] requiredKeys = { "appUpdateAvailable", "appUpdateTitle", "appUpdating", "appUpdateFailed", "appUpToDate", "tipCheckUpdate", "aboutTitle", "tipAbout", "btnAboutCheckUpdate", "appUpdateRestarting" };
 
             foreach (var lang in supportedLangs)
             {

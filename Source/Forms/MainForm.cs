@@ -52,6 +52,7 @@ namespace Phanmemwar3.Forms
         private ModernButton btnOpenFolder;
         private ModernButton btnConfigYDWE;
         private ModernButton btnCheckUpdate;
+        private ModernButton btnAbout;
         private ModernButton btnGuide;
         private ModernButton btnDiscord;
         private ModernButton btnYouTube;
@@ -171,7 +172,7 @@ namespace Phanmemwar3.Forms
             shell.Controls.Add(hero, 0, 1);
             var heroGrid = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
             heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 430));
+            heroGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 476));
             heroGrid.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             hero.Controls.Add(heroGrid);
             var heroText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty, Padding = Padding.Empty };
@@ -186,13 +187,14 @@ namespace Phanmemwar3.Forms
             heroText.Controls.Add(lblHeaderTitle, 0, 0);
             heroText.Controls.Add(lblHeaderSubtitle, 0, 1);
             heroGrid.Controls.Add(heroText, 0, 0);
-            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
-            heroActions.MinimumSize = new Size(426, 0);
+            var heroActions = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 6, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty };
+            heroActions.MinimumSize = new Size(476, 0);
             heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 94));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36));
-            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 144));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 136));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 34));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 34));
+            heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 34));
             heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 4, 9), DropDownWidth = 145 };
             cboLanguage.Items.AddRange(new object[] { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" });
@@ -224,6 +226,25 @@ namespace Phanmemwar3.Forms
             btnCheckUpdate = ActionButton("btnCheckUpdate", BtnCheckUpdate_Click);
             btnCheckUpdate.Margin = new Padding(2, 9, 2, 9);
             heroActions.Controls.Add(btnCheckUpdate, 2, 0);
+            btnAbout = new ModernButton
+            {
+                Text = "?",
+                Tag = "btnAbout",
+                Font = new Font("Segoe UI", 10.5f, FontStyle.Bold),
+                Dock = DockStyle.Fill,
+                Margin = new Padding(2, 9, 2, 9),
+                BorderRadius = 6,
+                BorderColor = Color.FromArgb(48, 68, 95),
+                BackColorNormal = Color.FromArgb(28, 42, 60),
+                BackColorHover = Color.FromArgb(52, 152, 219),
+                ForeColor = Color.FromArgb(200, 220, 245)
+            };
+            btnAbout.Click += (s, e) =>
+            {
+                using var af = new AboutForm(_config);
+                af.ShowDialog(this);
+            };
+            heroActions.Controls.Add(btnAbout, 3, 0);
             btnDiscord = new ModernButton
             {
                 Dock = DockStyle.Fill,
@@ -236,7 +257,7 @@ namespace Phanmemwar3.Forms
                 IconPainter = GraphicsUtils.DrawDiscordLogo
             };
             btnDiscord.Click += (s, e) => OpenExternalLink(DISCORD_URL);
-            heroActions.Controls.Add(btnDiscord, 3, 0);
+            heroActions.Controls.Add(btnDiscord, 4, 0);
             btnYouTube = new ModernButton
             {
                 Dock = DockStyle.Fill,
@@ -249,7 +270,7 @@ namespace Phanmemwar3.Forms
                 IconPainter = GraphicsUtils.DrawYouTubeLogo
             };
             btnYouTube.Click += (s, e) => OpenExternalLink(YOUTUBE_URL);
-            heroActions.Controls.Add(btnYouTube, 4, 0);
+            heroActions.Controls.Add(btnYouTube, 5, 0);
             heroGrid.Controls.Add(heroActions, 1, 0);
 
             var workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
@@ -578,6 +599,7 @@ namespace Phanmemwar3.Forms
             _actionTip.SetToolTip(btnRunGame, T("tipRunGame"));
             _actionTip.SetToolTip(btnGuide, T("guideHint"));
             _actionTip.SetToolTip(btnCheckUpdate, T("tipCheckUpdate"));
+            _actionTip.SetToolTip(btnAbout, T("tipAbout"));
             _actionTip.SetToolTip(cboLanguage, T("languageLabel"));
             _actionTip.SetToolTip(btnDiscord, T("tipDiscord"));
             _actionTip.SetToolTip(btnYouTube, T("tipYouTube"));
@@ -1395,6 +1417,9 @@ namespace Phanmemwar3.Forms
                 bool success = await AppUpdater.DownloadAndApplyAsync(update.DownloadUrl, currentExe, progress);
                 if (success)
                 {
+                    statusLabel.Text = T("appUpdateRestarting");
+                    statusLabel.ForeColor = Color.FromArgb(46, 204, 113);
+                    await Task.Delay(500);
                     AppUpdater.RestartApplication(currentExe);
                 }
                 else
