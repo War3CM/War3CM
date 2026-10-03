@@ -654,6 +654,25 @@ namespace Phanmemwar3.Forms
                 }
                 catch { }
             });
+
+            // Check application auto-update from GitHub Releases in background
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    string currentExe = Environment.ProcessPath ?? Application.ExecutablePath;
+                    AppUpdater.CleanupOldBackup(currentExe);
+                    var appUpdate = await AppUpdater.CheckForUpdateAsync(AppUpdater.CURRENT_VERSION);
+                    if (appUpdate != null && !this.IsDisposed)
+                    {
+                        this.BeginInvoke(new Action(() =>
+                        {
+                            PromptAndApplyAppUpdate(appUpdate);
+                        }));
+                    }
+                }
+                catch { }
+            });
         }
 
         private void LoadProfilesList(string war3Dir)
@@ -1353,12 +1372,54 @@ namespace Phanmemwar3.Forms
             }
         }
 
+        private async void PromptAndApplyAppUpdate(AppUpdateInfo update)
+        {
+            string changelog = string.IsNullOrWhiteSpace(update.Changelog) ? "" : "\n\n" + update.Changelog;
+            string msg = string.Format(T("appUpdateAvailable"), update.Version, changelog);
+            var result = MessageBox.Show(this, msg, T("appUpdateTitle"), MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            if (result == DialogResult.Yes)
+            {
+                statusLabel.Text = string.Format(T("appUpdating"), 0);
+                statusLabel.ForeColor = Color.FromArgb(52, 152, 219);
+                var progress = new Progress<int>(pct =>
+                {
+                    if (!this.IsDisposed)
+                    {
+                        statusLabel.Text = string.Format(T("appUpdating"), pct);
+                    }
+                });
+
+                string currentExe = Environment.ProcessPath ?? Application.ExecutablePath;
+                bool success = await AppUpdater.DownloadAndApplyAsync(update.DownloadUrl, currentExe, progress);
+                if (success)
+                {
+                    AppUpdater.RestartApplication(currentExe);
+                }
+                else
+                {
+                    statusLabel.Text = T("ready");
+                    MessageBox.Show(this, string.Format(T("appUpdateFailed"), "Download error"), T("errorTitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
         private async void BtnCheckUpdate_Click(object? sender, EventArgs e)
         {
             statusLabel.Text = T("checkingUpdate");
             statusLabel.ForeColor = Color.FromArgb(52, 152, 219);
             try
             {
+                // First check application update
+                var appUpdate = await AppUpdater.CheckForUpdateAsync(AppUpdater.CURRENT_VERSION);
+                if (appUpdate != null)
+                {
+                    PromptAndApplyAppUpdate(appUpdate);
+                    statusLabel.Text = T("updateChecked");
+                    statusLabel.ForeColor = Color.FromArgb(46, 204, 113);
+                    return;
+                }
+
+                // Next check KKWE plugin update
                 var info = await _updater.CheckForUpdatesAsync();
                 if (info != null)
                 {
@@ -1372,7 +1433,7 @@ namespace Phanmemwar3.Forms
                 }
                 else
                 {
-                    MessageBox.Show(this, T("updateUnavailable"), T("noticeTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(this, string.Format(T("appUpToDate"), AppUpdater.CURRENT_VERSION), T("noticeTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     statusLabel.Text = T("updateChecked");
                     statusLabel.ForeColor = Color.FromArgb(46, 204, 113);
                 }

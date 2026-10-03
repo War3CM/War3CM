@@ -4,3 +4,6 @@ obj/
 *.zip
 *.log
 Saves/
+Profiles/
+*.png
+

@@ -41,6 +41,7 @@ namespace Phanmemwar3.Tests
             Test_DataCleaner();
             Test_CompactUILayoutAndLocalization();
             Test_GuideLocalization();
+            Test_AppUpdater();
 
             Console.WriteLine("==================================================");
             Console.WriteLine($"SUBTEST RESULTS: {passed} PASSED, {failed} FAILED");
@@ -867,6 +868,78 @@ namespace Phanmemwar3.Tests
             // Fallback for unknown language returns EN
             var fallback = Phanmemwar3.Forms.GuideLocalization.GetContent("UNKNOWN");
             Assert(fallback.BannerTitle == Phanmemwar3.Forms.GuideLocalization.GetContent("EN").BannerTitle, "Unknown language safely falls back to [EN]");
+        }
+
+        static void Test_AppUpdater()
+        {
+            Console.WriteLine("\n[9] Testing AppUpdater (GitHub Releases & Swap Mechanism)");
+
+            // 1. Version comparison logic
+            Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.1", "1.0.0"), "v1.0.1 is newer than 1.0.0");
+            Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("1.1.0", "1.0.0"), "1.1.0 is newer than 1.0.0");
+            Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v2.0.0", "1.9.9"), "v2.0.0 is newer than 1.9.9");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.0", "1.0.0"), "v1.0.0 is not newer than 1.0.0");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v0.9.9", "1.0.0"), "v0.9.9 is not newer than 1.0.0");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("invalid", "1.0.0"), "invalid tag safely returns false");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("", "1.0.0"), "empty tag safely returns false");
+
+            // 2. Parse release JSON
+            string sampleJson = "{\"tag_name\":\"v1.0.1\",\"name\":\"Warcraft Platform Manager v1.0.1\",\"body\":\"- New feature\",\"assets\":[{\"name\":\"WarcraftPlatformManager.exe\",\"browser_download_url\":\"https://github.com/War3CM/War3CM/releases/download/v1.0.1/WarcraftPlatformManager.exe\",\"size\":15000000}]}";
+            var updateInfo = Phanmemwar3.Core.AppUpdater.ParseReleaseJson(sampleJson, "1.0.0");
+            Assert(updateInfo != null, "Valid release JSON parsed successfully");
+            Assert(updateInfo?.Version == "1.0.1", "Release version parsed as 1.0.1");
+            Assert(updateInfo?.Title == "Warcraft Platform Manager v1.0.1", "Release title parsed");
+            Assert(updateInfo?.DownloadUrl == "https://github.com/War3CM/War3CM/releases/download/v1.0.1/WarcraftPlatformManager.exe", "Asset download URL parsed");
+            Assert(updateInfo?.FileSize == 15000000, "Asset file size parsed");
+
+            // 3. JSON without exe asset returns null
+            string noExeJson = "{\"tag_name\":\"v1.0.1\",\"name\":\"Test\",\"body\":\"\",\"assets\":[{\"name\":\"notes.txt\",\"browser_download_url\":\"https://example.com/notes.txt\",\"size\":100}]}";
+            Assert(Phanmemwar3.Core.AppUpdater.ParseReleaseJson(noExeJson, "1.0.0") == null, "Release without exe asset returns null");
+
+            // 4. Same version in JSON returns null (no update needed)
+            Assert(Phanmemwar3.Core.AppUpdater.ParseReleaseJson(sampleJson, "1.0.1") == null, "Same version returns null");
+
+            // 5. Malformed JSON returns null safely
+            Assert(Phanmemwar3.Core.AppUpdater.ParseReleaseJson("not a json", "1.0.0") == null, "Malformed JSON returns null safely");
+
+            // 6. Test swap mechanism with temporary files
+            string tempDir = Path.Combine(Path.GetTempPath(), "WpmUpdateTest_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                string exePath = Path.Combine(tempDir, "WarcraftPlatformManager.exe");
+                string newPath = Path.Combine(tempDir, "WarcraftPlatformManager.new");
+                string bakPath = Path.Combine(tempDir, "WarcraftPlatformManager.bak");
+
+                File.WriteAllText(exePath, "OLD_VERSION_DATA");
+                File.WriteAllText(newPath, "NEW_VERSION_DATA");
+
+                bool swapOk = Phanmemwar3.Core.AppUpdater.ApplyUpdateFiles(exePath, newPath, bakPath);
+                Assert(swapOk, "ApplyUpdateFiles succeeded");
+                Assert(File.Exists(exePath) && File.ReadAllText(exePath) == "NEW_VERSION_DATA", "exe file contains new data");
+                Assert(File.Exists(bakPath) && File.ReadAllText(bakPath) == "OLD_VERSION_DATA", "bak file contains old data");
+                Assert(!File.Exists(newPath), "temp new file was removed/moved");
+
+                Phanmemwar3.Core.AppUpdater.CleanupOldBackup(exePath);
+                Assert(!File.Exists(bakPath), "CleanupOldBackup removed bak file");
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+
+            // 7. Verify all 10 languages have app update localization keys
+            string[] supportedLangs = { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" };
+            var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
+            string[] requiredKeys = { "appUpdateAvailable", "appUpdateTitle", "appUpdating", "appUpdateFailed", "appUpToDate" };
+
+            foreach (var lang in supportedLangs)
+            {
+                foreach (var k in requiredKeys)
+                {
+                    Assert(cfg.HasLanguageKey(lang, k), $"[{lang}] contains key '{k}'");
+                }
+            }
         }
     }
 }
