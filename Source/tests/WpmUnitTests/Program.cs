@@ -40,6 +40,7 @@ namespace Phanmemwar3.Tests
             Test_PlayerNameRenamingAndRegistrySync();
             Test_DataCleaner();
             Test_CompactUILayoutAndLocalization();
+            Test_GuideLocalization();
 
             Console.WriteLine("==================================================");
             Console.WriteLine($"SUBTEST RESULTS: {passed} PASSED, {failed} FAILED");
@@ -775,6 +776,16 @@ namespace Phanmemwar3.Tests
                     Assert(guideForm.MinimumSize.Width == 720 && guideForm.MinimumSize.Height == 680, "GuideForm MinimumSize is 720x680");
                     Assert(guideForm.MaximumSize.Width == 720 && guideForm.MaximumSize.Height == 680, "GuideForm MaximumSize is 720x680");
 
+                    cfg.SetSetting("Language", "RU");
+                    using var guideFormRu = new Phanmemwar3.Forms.GuideForm(cfg);
+                    Assert(guideFormRu.Text.Contains("Руководство"), "GuideForm title is translated in [RU]");
+
+                    cfg.SetSetting("Language", "KO");
+                    using var guideFormKo = new Phanmemwar3.Forms.GuideForm(cfg);
+                    Assert(guideFormKo.Text.Contains("가이드"), "GuideForm title is translated in [KO]");
+
+                    cfg.SetSetting("Language", "EN");
+
                     using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
                     var settingsMuteChk = FindControl(settingsForm, c => c.Tag as string == "muteSaveValue");
                     Assert(settingsMuteChk != null, "MuteSaveValue checkbox exists cleanly inside SettingsForm");
@@ -802,6 +813,60 @@ namespace Phanmemwar3.Tests
             {
                 Assert(true, "Forms instantiate and validate layout bounds cleanly on STA thread");
             }
+        }
+
+        static void Test_GuideLocalization()
+        {
+            Console.WriteLine("\n[8] Testing Multi-language Guide (GuideLocalization)");
+            string[] supportedLangs = { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" };
+
+            foreach (var lang in supportedLangs)
+            {
+                var content = Phanmemwar3.Forms.GuideLocalization.GetContent(lang);
+                Assert(content != null, $"GuideContent is not null for [{lang}]");
+                Assert(!string.IsNullOrWhiteSpace(content!.BannerTitle), $"[{lang}] BannerTitle is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.BannerSubtitle), $"[{lang}] BannerSubtitle is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step1Title), $"[{lang}] Step1Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step1Desc), $"[{lang}] Step1Desc is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.BtnCardDrive), $"[{lang}] BtnCardDrive is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.BtnCardCopy), $"[{lang}] BtnCardCopy is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.CommTitle), $"[{lang}] CommTitle is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.CommDesc), $"[{lang}] CommDesc is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.BtnDiscord), $"[{lang}] BtnDiscord is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.BtnYouTube), $"[{lang}] BtnYouTube is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.WarnTitle), $"[{lang}] WarnTitle is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.WarnBody), $"[{lang}] WarnBody is non-empty");
+
+                Assert(!string.IsNullOrWhiteSpace(content.Step2.Title), $"[{lang}] Step2.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step2.Body), $"[{lang}] Step2.Body is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step3.Title), $"[{lang}] Step3.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step3.Body), $"[{lang}] Step3.Body is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step4.Title), $"[{lang}] Step4.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step4.Body), $"[{lang}] Step4.Body is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step5.Title), $"[{lang}] Step5.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step5.Body), $"[{lang}] Step5.Body is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step6.Title), $"[{lang}] Step6.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step6.Body), $"[{lang}] Step6.Body is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step7.Title), $"[{lang}] Step7.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step7.Body), $"[{lang}] Step7.Body is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step8.Title), $"[{lang}] Step8.Title is non-empty");
+                Assert(!string.IsNullOrWhiteSpace(content.Step8.Body), $"[{lang}] Step8.Body is non-empty");
+            }
+
+            // Language-specific keyword checks
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("RU").BannerTitle.Contains("Руководство"), "[RU] contains Russian 'Руководство'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("DE").BannerTitle.Contains("Anleitung"), "[DE] contains German 'Anleitung'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("KO").BannerTitle.Contains("가이드"), "[KO] contains Korean '가이드'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("ES").BannerTitle.Contains("Guía"), "[ES] contains Spanish 'Guía'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("UK").BannerTitle.Contains("Посібник"), "[UK] contains Ukrainian 'Посібник'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("FR").BannerTitle.Contains("Guide"), "[FR] contains French 'Guide'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("PL").BannerTitle.Contains("Instrukcja"), "[PL] contains Polish 'Instrukcja'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("PT").BannerTitle.Contains("Guia"), "[PT] contains Portuguese 'Guia'");
+            Assert(Phanmemwar3.Forms.GuideLocalization.GetContent("CN").BannerTitle.Contains("指南"), "[CN] contains Chinese '指南'");
+
+            // Fallback for unknown language returns EN
+            var fallback = Phanmemwar3.Forms.GuideLocalization.GetContent("UNKNOWN");
+            Assert(fallback.BannerTitle == Phanmemwar3.Forms.GuideLocalization.GetContent("EN").BannerTitle, "Unknown language safely falls back to [EN]");
         }
     }
 }
