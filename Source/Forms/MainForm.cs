@@ -194,8 +194,27 @@ namespace Phanmemwar3.Forms
             heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36));
             heroActions.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36));
             heroActions.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 4, 9) };
-            cboLanguage.Items.AddRange(new object[] { "EN", "VN", "CN" });
+            cboLanguage = new ModernComboBox { Dock = DockStyle.Fill, Margin = new Padding(0, 9, 4, 9), DropDownWidth = 145 };
+            cboLanguage.Items.AddRange(new object[] { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" });
+            cboLanguage.SelectedItemText = item => item?.ToString() ?? "EN";
+            cboLanguage.DisplayText = item =>
+            {
+                string code = item?.ToString() ?? "";
+                return code switch
+                {
+                    "EN" => "EN - English",
+                    "RU" => "RU - Русский",
+                    "DE" => "DE - Deutsch",
+                    "KO" => "KO - 한국어",
+                    "ES" => "ES - Español",
+                    "UK" => "UK - Українська",
+                    "FR" => "FR - Français",
+                    "PL" => "PL - Polski",
+                    "PT" => "PT - Português",
+                    "CN" => "CN - 中文",
+                    _ => code
+                };
+            };
             cboLanguage.SelectedIndex = LanguageIndex();
             cboLanguage.SelectedIndexChanged += (s, e) => ChangeLanguage();
             heroActions.Controls.Add(cboLanguage, 0, 0);
@@ -525,7 +544,18 @@ namespace Phanmemwar3.Forms
         }
 
         private int LanguageIndex() => _config.GetSetting("Language", "EN").ToUpperInvariant() switch
-        { "VN" => 1, "CN" => 2, _ => 0 };
+        {
+            "RU" => 1,
+            "DE" => 2,
+            "KO" => 3,
+            "ES" => 4,
+            "UK" => 5,
+            "FR" => 6,
+            "PL" => 7,
+            "PT" => 8,
+            "CN" => 9,
+            _ => 0
+        };
 
         private bool _suppressLanguageEvent;
 

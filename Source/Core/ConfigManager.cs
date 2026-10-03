@@ -96,18 +96,23 @@ namespace Phanmemwar3.Core
             SaveIni(_settingsPath, _settingsData);
         }
 
-        public string GetText(string key, string lang = "VN")
+        public string GetText(string key, string lang = "EN")
         {
             if (_langData.TryGetValue(lang, out var section) && section.TryGetValue(key, out var text))
             {
                 return text;
             }
-            // Fallback to VN or EN
-            if (_langData.TryGetValue("VN", out var vnSection) && vnSection.TryGetValue(key, out var vnText))
+            // Fallback to EN
+            if (_langData.TryGetValue("EN", out var enSection) && enSection.TryGetValue(key, out var enText))
             {
-                return vnText;
+                return enText;
             }
             return key;
+        }
+
+        public bool HasLanguageKey(string lang, string key)
+        {
+            return _langData.TryGetValue(lang, out var section) && section.ContainsKey(key);
         }
 
         private static void ParseIni(string filePath, Dictionary<string, Dictionary<string, string>> target)

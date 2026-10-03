@@ -57,10 +57,10 @@ namespace Phanmemwar3.Tests
             try
             {
                 // Create custom ini files
-                string iniContent = "[Settings]\nWar3Path=C:\\TestWar3\nLanguage=VN\nUserName=HeroPlayer\n";
+                string iniContent = "[Settings]\nWar3Path=C:\\TestWar3\nLanguage=EN\nUserName=HeroPlayer\n";
                 File.WriteAllText(Path.Combine(tempDir, "settings.ini"), iniContent);
 
-                string langContent = "[VN]\nhello=Xin chao\n[EN]\nhello=Hello World\n[CN]\nhello=Nihao\n";
+                string langContent = "[EN]\nhello=Hello World\n[RU]\nhello=Привет мир\n[DE]\nhello=Hallo Welt\n[KO]\nhello=안녕하세요\n[ES]\nhello=Hola Mundo\n[UK]\nhello=Привіт світ\n[FR]\nhello=Bonjour le monde\n[PL]\nhello=Witaj świecie\n[PT]\nhello=Olá Mundo\n[CN]\nhello=Nihao\n";
                 File.WriteAllText(Path.Combine(tempDir, "lang.ini"), langContent);
 
                 var cfg = new ConfigManager(tempDir);
@@ -68,10 +68,13 @@ namespace Phanmemwar3.Tests
                 Assert(cfg.GetSetting("UserName") == "HeroPlayer", "Reads UserName from settings.ini");
                 Assert(cfg.GetSetting("NonExistent", "DefaultVal") == "DefaultVal", "Returns defaultValue for missing key");
 
-                Assert(cfg.GetText("hello", "VN") == "Xin chao", "Localizes text with [VN]");
                 Assert(cfg.GetText("hello", "EN") == "Hello World", "Localizes text with [EN]");
+                Assert(cfg.GetText("hello", "RU") == "Привет мир", "Localizes text with [RU]");
+                Assert(cfg.GetText("hello", "DE") == "Hallo Welt", "Localizes text with [DE]");
+                Assert(cfg.GetText("hello", "KO") == "안녕하세요", "Localizes text with [KO]");
                 Assert(cfg.GetText("hello", "CN") == "Nihao", "Localizes text with [CN]");
-                Assert(cfg.GetText("missing_key", "VN") == "missing_key", "Returns key if missing in lang");
+                Assert(cfg.GetText("missing_key", "EN") == "missing_key", "Returns key if missing in lang");
+                Assert(cfg.GetText("hello", "NONEXISTENT") == "Hello World", "Falls back to EN when lang is missing");
 
                 // Test saving settings
                 cfg.SetSetting("GraphicType", "DirectX");
@@ -533,17 +536,16 @@ namespace Phanmemwar3.Tests
         {
             Console.WriteLine("\n[7] Testing Compact UI & Localization Integrity");
 
-            // 1. Check pathHintShort in all 3 languages
+            // 1. Check pathHintShort in all 10 supported languages
             var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
-            string vnHint = cfg.GetText("pathHintShort", "VN");
-            string enHint = cfg.GetText("pathHintShort", "EN");
-            string cnHint = cfg.GetText("pathHintShort", "CN");
+            string[] supportedLangs = new[] { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" };
+            foreach (var lang in supportedLangs)
+            {
+                string hint = cfg.GetText("pathHintShort", lang);
+                Assert(!string.IsNullOrEmpty(hint) && hint != "pathHintShort", $"[{lang}] contains pathHintShort");
+            }
 
-            Assert(!string.IsNullOrEmpty(vnHint) && vnHint != "pathHintShort", "VN contains pathHintShort");
-            Assert(!string.IsNullOrEmpty(enHint) && enHint != "pathHintShort", "EN contains pathHintShort");
-            Assert(!string.IsNullOrEmpty(cnHint) && cnHint != "pathHintShort", "CN contains pathHintShort");
-
-            // 2. Check UI keys existence across languages
+            // 2. Check UI keys existence across all 10 languages
             string[] keys = new[]
             {
                 "appName", "browse", "selectWar3Folder", "pathHintShort", "mapSaveTitle",
@@ -565,18 +567,19 @@ namespace Phanmemwar3.Tests
             };
 
             bool allPresent = true;
-            foreach (var lang in new[] { "VN", "EN", "CN" })
+            foreach (var lang in supportedLangs)
             {
                 foreach (var k in keys)
                 {
-                    if (cfg.GetText(k, lang) == k)
+                    if (!cfg.HasLanguageKey(lang, k))
                     {
                         Console.WriteLine($"    Missing key '{k}' in [{lang}]");
                         allPresent = false;
                     }
                 }
             }
-            Assert(allPresent, $"All {keys.Length} core UI keys are translated across VN, EN, CN");
+            Assert(allPresent, $"All {keys.Length} core UI keys are translated directly in all {supportedLangs.Length} languages");
+            Assert(!cfg.HasLanguageKey("VN", "appName"), "VN section is completely removed from lang.ini");
 
             // 3. Test Form Instantiation & Compact Dimensions in STA thread
             Exception? staEx = null;
@@ -640,9 +643,15 @@ namespace Phanmemwar3.Tests
                     var graphicCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("DirectX"));
                     Assert(graphicCbo != null && graphicCbo.Width >= 300, "cboGraphic has full width >= 300px without squishing");
 
-                    // Check cboLanguage width is >= 88px so text like EN/VN/CN is never clipped to a vertical bar
-                    var langCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("EN") && cb.Items.Contains("VN"));
+                    // Check cboLanguage contains all 10 languages, excludes VN, and DropDownWidth is >= 140px
+                    var langCbo = FindControl(mainForm, c => c is System.Windows.Forms.ComboBox cb && cb.Items.Contains("EN") && cb.Items.Contains("RU")) as System.Windows.Forms.ComboBox;
                     Assert(langCbo != null && langCbo.Width >= 88, "cboLanguage width is >= 88px (fully visible language code)");
+                    Assert(langCbo != null && langCbo.DropDownWidth >= 140, "cboLanguage DropDownWidth is >= 140px for readable language names");
+                    Assert(langCbo != null && !langCbo.Items.Contains("VN"), "cboLanguage does NOT contain VN");
+                    foreach (var l in supportedLangs)
+                    {
+                        Assert(langCbo != null && langCbo.Items.Contains(l), $"cboLanguage contains [{l}]");
+                    }
                     var actionTipField = typeof(Phanmemwar3.Forms.MainForm).GetField("_actionTip", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     var actionTip = actionTipField?.GetValue(mainForm) as System.Windows.Forms.ToolTip;
                     Assert(!string.IsNullOrEmpty(actionTip?.GetToolTip(langCbo!)), "cboLanguage has informative tooltip");
@@ -692,8 +701,8 @@ namespace Phanmemwar3.Tests
                     Assert(runGameBtn != null, "btnRunGame exists in play card");
                     Assert(runGameBtn != null && runGameBtn.Text == "Play Map", "btnRunGame displays exact button text 'Play Map'");
 
-                    // Verify localized text in VN, EN, CN
-                    foreach (var lang in new[] { "VN", "EN", "CN" })
+                    // Verify localized text in all 10 languages
+                    foreach (var lang in supportedLangs)
                     {
                         Assert(cfg.GetText("btnEnterWar3", lang) == "Play War3", $"btnEnterWar3 is 'Play War3' in [{lang}]");
                         Assert(cfg.GetText("btnRunGame", lang) == "Play Map", $"btnRunGame is 'Play Map' in [{lang}]");

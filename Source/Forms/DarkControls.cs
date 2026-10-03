@@ -684,6 +684,7 @@ namespace Phanmemwar3.Forms
     public class ModernComboBox : ComboBox
     {
         public Func<object?, string>? DisplayText { get; set; }
+        public Func<object?, string>? SelectedItemText { get; set; }
         public ModernComboBox()
         {
             this.DrawMode = DrawMode.OwnerDrawFixed;
@@ -706,8 +707,10 @@ namespace Phanmemwar3.Forms
                 e.Graphics.FillRectangle(b, e.Bounds);
             }
 
-            string text = DisplayText?.Invoke(this.Items[e.Index]) ?? this.Items[e.Index]?.ToString() ?? "";
             bool isEdit = (e.State & DrawItemState.ComboBoxEdit) != 0;
+            string text = (isEdit && SelectedItemText != null)
+                ? SelectedItemText(this.Items[e.Index])
+                : (DisplayText?.Invoke(this.Items[e.Index]) ?? this.Items[e.Index]?.ToString() ?? "");
             Rectangle rect;
             if (isEdit)
             {
