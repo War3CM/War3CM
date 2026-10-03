@@ -577,6 +577,7 @@ namespace Phanmemwar3.Forms
             _actionTip.SetToolTip(btnEnterWar3, T("tipEnterWar3"));
             _actionTip.SetToolTip(btnRunGame, T("tipRunGame"));
             _actionTip.SetToolTip(btnGuide, T("guideHint"));
+            _actionTip.SetToolTip(btnCheckUpdate, T("tipCheckUpdate"));
             _actionTip.SetToolTip(cboLanguage, T("languageLabel"));
             _actionTip.SetToolTip(btnDiscord, T("tipDiscord"));
             _actionTip.SetToolTip(btnYouTube, T("tipYouTube"));

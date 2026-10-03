@@ -952,7 +952,7 @@ namespace Phanmemwar3.Tests
             // 7. Verify all 10 languages have app update localization keys
             string[] supportedLangs = { "EN", "RU", "DE", "KO", "ES", "UK", "FR", "PL", "PT", "CN" };
             var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
-            string[] requiredKeys = { "appUpdateAvailable", "appUpdateTitle", "appUpdating", "appUpdateFailed", "appUpToDate" };
+            string[] requiredKeys = { "appUpdateAvailable", "appUpdateTitle", "appUpdating", "appUpdateFailed", "appUpToDate", "tipCheckUpdate" };
 
             foreach (var lang in supportedLangs)
             {

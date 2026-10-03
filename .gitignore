@@ -6,4 +6,6 @@ obj/
 Saves/
 Profiles/
 *.png
+*.old
+*.bak
 
