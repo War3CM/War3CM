@@ -19,10 +19,89 @@ namespace Phanmemwar3.Core
 
     public static class AppUpdater
     {
-        public const string CURRENT_VERSION = "1.0.0";
+        public const string CURRENT_VERSION = "1.0.1";
         public const string GITHUB_REPO = "War3CM/War3CM";
         public const string RELEASES_API_URL = "https://api.github.com/repos/War3CM/War3CM/releases/latest";
         public const string TARGET_EXE_NAME = "WarcraftPlatformManager.exe";
+
+        public static string CurrentVersion
+        {
+            get
+            {
+                try
+                {
+                    var asm = typeof(AppUpdater).Assembly;
+                    var ver = asm.GetName().Version;
+                    if (ver != null && (ver.Major > 0 || ver.Minor > 0 || ver.Build > 0))
+                    {
+                        string verStr = $"{ver.Major}.{ver.Minor}.{ver.Build}";
+                        if (Version.TryParse(verStr, out var parsed) && Version.TryParse(CURRENT_VERSION, out var currentConst))
+                        {
+                            return parsed > currentConst ? verStr : CURRENT_VERSION;
+                        }
+                        return verStr;
+                    }
+                }
+                catch { }
+                return CURRENT_VERSION;
+            }
+        }
+
+        public static string FormatChangelogForDialog(string? rawBody, int maxLines = 5)
+        {
+            if (string.IsNullOrWhiteSpace(rawBody))
+                return "";
+
+            var lines = rawBody.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var bullets = new System.Collections.Generic.List<string>();
+
+            foreach (var rawLine in lines)
+            {
+                string line = rawLine.Trim();
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                // Skip headers, horizontal rules, markdown tables, badges, keywords footer
+                if (line.StartsWith("#") || line.StartsWith("---") || line.StartsWith("===") || 
+                    line.StartsWith("|") || line.StartsWith(">") || line.StartsWith("![") || 
+                    line.StartsWith("[!") || line.StartsWith("*Keywords", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // Check for bullet items
+                if (line.StartsWith("- ") || line.StartsWith("* ") || line.StartsWith("• ") || line.StartsWith("+ "))
+                {
+                    string item = line.Substring(2).Trim();
+                    item = item.Replace("**", "");
+                    if (!string.IsNullOrWhiteSpace(item))
+                    {
+                        bullets.Add("• " + item);
+                    }
+                }
+                else if (bullets.Count == 0 && !line.Contains('|') && !line.StartsWith("<") && !line.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    string item = line.Replace("**", "").Trim();
+                    if (!string.IsNullOrWhiteSpace(item) && item.Length < 120)
+                    {
+                        bullets.Add("• " + item);
+                    }
+                }
+
+                if (bullets.Count >= maxLines)
+                    break;
+            }
+
+            if (bullets.Count > 0)
+            {
+                return string.Join("\n", bullets);
+            }
+
+            string clean = rawBody.Replace("\r", " ").Replace("\n", " ").Replace("**", "").Trim();
+            if (clean.Length > 200)
+            {
+                clean = clean.Substring(0, 197) + "...";
+            }
+            return clean;
+        }
 
         public static bool IsNewerVersion(string? remoteTag, string currentVersion)
         {
@@ -105,8 +184,9 @@ namespace Phanmemwar3.Core
             }
         }
 
-        public static async Task<AppUpdateInfo?> CheckForUpdateAsync(string currentVersion = CURRENT_VERSION, CancellationToken ct = default)
+        public static async Task<AppUpdateInfo?> CheckForUpdateAsync(string? currentVersion = null, CancellationToken ct = default)
         {
+            string versionToCheck = string.IsNullOrWhiteSpace(currentVersion) ? CurrentVersion : currentVersion;
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -120,7 +200,7 @@ namespace Phanmemwar3.Core
                     return null;
 
                 string json = await response.Content.ReadAsStringAsync(cts.Token);
-                return ParseReleaseJson(json, currentVersion);
+                return ParseReleaseJson(json, versionToCheck);
             }
             catch
             {

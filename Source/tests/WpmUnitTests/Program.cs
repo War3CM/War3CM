@@ -84,6 +84,12 @@ namespace Phanmemwar3.Tests
                 var cfg2 = new ConfigManager(tempDir);
                 Assert(cfg2.GetSetting("GraphicType") == "DirectX", "Persists updated settings to disk");
 
+                // Test newline unescaping in GetText
+                string multilineContent = "[EN]\ntest_multi=Line 1\\nLine 2\\r\\nLine 3\n";
+                File.WriteAllText(Path.Combine(tempDir, "lang.ini"), multilineContent);
+                var cfgMulti = new ConfigManager(tempDir);
+                Assert(cfgMulti.GetText("test_multi", "EN") == "Line 1\nLine 2\nLine 3", "Unescapes literal \\n and \\r\\n to real newlines");
+
                 // Test standalone fallback (when lang.ini is missing on a new machine)
                 string emptyDir = Path.Combine(Path.GetTempPath(), "WpmTest_Empty_" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(emptyDir);
@@ -874,7 +880,22 @@ namespace Phanmemwar3.Tests
         {
             Console.WriteLine("\n[9] Testing AppUpdater (GitHub Releases & Swap Mechanism)");
 
+            // CurrentVersion and constant check
+            Assert(!string.IsNullOrEmpty(Phanmemwar3.Core.AppUpdater.CurrentVersion), "CurrentVersion is non-empty");
+            Assert(Phanmemwar3.Core.AppUpdater.CurrentVersion == "1.0.1", "CurrentVersion is 1.0.1");
+
+            // Changelog formatting check
+            string rawMarkdown = "# Warcraft Platform Manager v1.0.1\n| Col1 | Col2 |\n|---|---|\n- **Feature 1**: First item\n- **Feature 2**: Second item\n*Keywords: war3 launcher*";
+            string formatted = Phanmemwar3.Core.AppUpdater.FormatChangelogForDialog(rawMarkdown);
+            Assert(formatted.Contains("• Feature 1: First item"), "Bullet point 1 cleaned properly");
+            Assert(formatted.Contains("• Feature 2: Second item"), "Bullet point 2 cleaned properly");
+            Assert(!formatted.Contains("| Col1 |"), "Markdown table omitted from dialog");
+            Assert(!formatted.Contains("# Warcraft"), "Header omitted from dialog");
+            Assert(!formatted.Contains("Keywords:"), "Footer keywords omitted from dialog");
+
             // 1. Version comparison logic
+            Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.2", "1.0.1"), "v1.0.2 is newer than 1.0.1");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.1", "1.0.1"), "v1.0.1 is not newer than 1.0.1");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.1", "1.0.0"), "v1.0.1 is newer than 1.0.0");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("1.1.0", "1.0.0"), "1.1.0 is newer than 1.0.0");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v2.0.0", "1.9.9"), "v2.0.0 is newer than 1.9.9");

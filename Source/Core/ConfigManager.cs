@@ -100,12 +100,12 @@ namespace Phanmemwar3.Core
         {
             if (_langData.TryGetValue(lang, out var section) && section.TryGetValue(key, out var text))
             {
-                return text;
+                return text.Replace("\\r\\n", "\n").Replace("\\r", "\n").Replace("\\n", "\n");
             }
             // Fallback to EN
             if (_langData.TryGetValue("EN", out var enSection) && enSection.TryGetValue(key, out var enText))
             {
-                return enText;
+                return enText.Replace("\\r\\n", "\n").Replace("\\r", "\n").Replace("\\n", "\n");
             }
             return key;
         }

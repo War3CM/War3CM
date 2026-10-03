@@ -662,7 +662,7 @@ namespace Phanmemwar3.Forms
                 {
                     string currentExe = Environment.ProcessPath ?? Application.ExecutablePath;
                     AppUpdater.CleanupOldBackup(currentExe);
-                    var appUpdate = await AppUpdater.CheckForUpdateAsync(AppUpdater.CURRENT_VERSION);
+                    var appUpdate = await AppUpdater.CheckForUpdateAsync(AppUpdater.CurrentVersion);
                     if (appUpdate != null && !this.IsDisposed)
                     {
                         this.BeginInvoke(new Action(() =>
@@ -1374,7 +1374,8 @@ namespace Phanmemwar3.Forms
 
         private async void PromptAndApplyAppUpdate(AppUpdateInfo update)
         {
-            string changelog = string.IsNullOrWhiteSpace(update.Changelog) ? "" : "\n\n" + update.Changelog;
+            string cleanChangelog = AppUpdater.FormatChangelogForDialog(update.Changelog);
+            string changelog = string.IsNullOrWhiteSpace(cleanChangelog) ? "" : "\n\n" + cleanChangelog;
             string msg = string.Format(T("appUpdateAvailable"), update.Version, changelog);
             var result = MessageBox.Show(this, msg, T("appUpdateTitle"), MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             if (result == DialogResult.Yes)
@@ -1410,7 +1411,7 @@ namespace Phanmemwar3.Forms
             try
             {
                 // First check application update
-                var appUpdate = await AppUpdater.CheckForUpdateAsync(AppUpdater.CURRENT_VERSION);
+                var appUpdate = await AppUpdater.CheckForUpdateAsync(AppUpdater.CurrentVersion);
                 if (appUpdate != null)
                 {
                     PromptAndApplyAppUpdate(appUpdate);
@@ -1433,7 +1434,7 @@ namespace Phanmemwar3.Forms
                 }
                 else
                 {
-                    MessageBox.Show(this, string.Format(T("appUpToDate"), AppUpdater.CURRENT_VERSION), T("noticeTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(this, string.Format(T("appUpToDate"), AppUpdater.CurrentVersion), T("noticeTitle"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     statusLabel.Text = T("updateChecked");
                     statusLabel.ForeColor = Color.FromArgb(46, 204, 113);
                 }
