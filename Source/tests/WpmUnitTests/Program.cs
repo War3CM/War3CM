@@ -410,10 +410,15 @@ namespace Phanmemwar3.Tests
                 Assert(setOk, "RegistryHelper sets player name successfully");
                 Assert(RegistryHelper.GetPlayerName() == "HeroKnight", "RegistryHelper reads back player name correctly");
 
-                // Test safe length boundary (< 16 chars)
-                RegistryHelper.SetPlayerName("SuperLongPlayerNameExceeding15Chars");
+                // Test default RPG map player name preservation (25 chars)
+                bool setRpgOk = RegistryHelper.SetPlayerName("Warcraft 3 Custom RPG Map");
+                Assert(setRpgOk, "RegistryHelper sets 25-char player name successfully");
+                Assert(RegistryHelper.GetPlayerName() == "Warcraft 3 Custom RPG Map", "Preserves full player name 'Warcraft 3 Custom RPG Map' (25 chars)");
+
+                // Test safe length boundary (<= 50 chars)
+                RegistryHelper.SetPlayerName(new string('X', 80));
                 string? clamped = RegistryHelper.GetPlayerName();
-                Assert(clamped != null && clamped.Length <= 15, "RegistryHelper limits player name length safely to <= 15 chars");
+                Assert(clamped != null && clamped.Length <= 50, "RegistryHelper limits player name length safely to <= 50 chars");
 
                 // Test memory patcher bounds check
                 bool invalidPidCheck = War3Launcher.PatchPlayerNameInMemory(-1, "SafeTest");
@@ -421,7 +426,7 @@ namespace Phanmemwar3.Tests
             }
             finally
             {
-                RegistryHelper.SetPlayerName(string.IsNullOrEmpty(prevName) ? "MrP" : prevName);
+                RegistryHelper.SetPlayerName(string.IsNullOrEmpty(prevName) ? "Warcraft 3 Custom RPG Map" : prevName);
             }
         }
 

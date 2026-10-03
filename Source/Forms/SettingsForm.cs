@@ -123,7 +123,7 @@ namespace Phanmemwar3.Forms
 
         private void LoadData()
         {
-            txtUserName.TextContent = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "MrP");
+            txtUserName.TextContent = _config.GetSetting("UserName", "Warcraft 3 Custom RPG Map");
             chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";
             chkLockMouse.Checked = _config.GetSetting("LockMouse", "1") == "1";
             chkFixRatio.Checked = _config.GetSetting("FixRatio", "1") == "1";
@@ -134,7 +134,7 @@ namespace Phanmemwar3.Forms
         private void BtnSave_Click(object? sender, EventArgs e)
         {
             string userName = txtUserName.TextContent.Trim();
-            if (string.IsNullOrEmpty(userName)) userName = "MrP";
+            if (string.IsNullOrEmpty(userName)) userName = "Warcraft 3 Custom RPG Map";
             _config.SetSetting("UserName", userName);
             RegistryHelper.SetPlayerName(userName);
             _config.SetSetting("MuteSaveValue", chkMuteSaveValue.Checked ? "1" : "0");

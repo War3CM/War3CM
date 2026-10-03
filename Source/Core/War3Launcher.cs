@@ -14,7 +14,7 @@ namespace Phanmemwar3.Core
         public string GraphicType { get; set; } = "OpenGL"; // OpenGL or DirectX
         public string DisplayMode { get; set; } = "Borderless Windowed"; // Borderless Windowed, Window, Fullscreen
         public int Instances { get; set; } = 1;
-        public string UserName { get; set; } = "Player";
+        public string UserName { get; set; } = "Warcraft 3 Custom RPG Map";
         public bool LockMouse { get; set; } = true;
         public bool FixRatio { get; set; } = true;
         public bool WideScreen { get; set; } = true;
