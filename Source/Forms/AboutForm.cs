@@ -24,9 +24,9 @@ namespace Phanmemwar3.Forms
         {
             Text = T("aboutTitle");
             FormBorderStyle = FormBorderStyle.None;
-            ClientSize = new Size(540, 520);
-            MinimumSize = new Size(540, 520);
-            MaximumSize = new Size(540, 520);
+            ClientSize = new Size(540, 530);
+            MinimumSize = new Size(540, 530);
+            MaximumSize = new Size(540, 530);
             StartPosition = FormStartPosition.CenterParent;
             BackColor = Color.FromArgb(12, 18, 29);
             ForeColor = Color.White;
@@ -52,7 +52,7 @@ namespace Phanmemwar3.Forms
                 RowCount = 3,
                 Padding = new Padding(16, 10, 16, 10)
             };
-            content.RowStyles.Add(new RowStyle(SizeType.Absolute, 86));  // Header (ample room for 3 text rows)
+            content.RowStyles.Add(new RowStyle(SizeType.Absolute, 92));  // Header (ample room for 3 text rows with breathing room)
             content.RowStyles.Add(new RowStyle(SizeType.Percent, 100));  // Features card
             content.RowStyles.Add(new RowStyle(SizeType.Absolute, 110)); // Updates & Community card
             shell.Controls.Add(content, 0, 1);
@@ -71,8 +71,8 @@ namespace Phanmemwar3.Forms
             header.Controls.Add(iconBox, 0, 0);
 
             var headerText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
-            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
-            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
             headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 26));
 
             var lblTitle = new Label
@@ -115,7 +115,7 @@ namespace Phanmemwar3.Forms
             var cardFeatures = new DarkCardPanel
             {
                 Dock = DockStyle.Fill,
-                Margin = new Padding(0, 8, 0, 6),
+                Margin = new Padding(0, 10, 0, 6),
                 Padding = new Padding(14, 10, 14, 10),
                 BackColor = Color.FromArgb(18, 28, 43),
                 BorderColor = Color.FromArgb(43, 63, 88)
