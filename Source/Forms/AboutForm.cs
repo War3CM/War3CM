@@ -24,9 +24,9 @@ namespace Phanmemwar3.Forms
         {
             Text = T("aboutTitle");
             FormBorderStyle = FormBorderStyle.None;
-            ClientSize = new Size(520, 490);
-            MinimumSize = new Size(520, 490);
-            MaximumSize = new Size(520, 490);
+            ClientSize = new Size(540, 520);
+            MinimumSize = new Size(540, 520);
+            MaximumSize = new Size(540, 520);
             StartPosition = FormStartPosition.CenterParent;
             BackColor = Color.FromArgb(12, 18, 29);
             ForeColor = Color.White;
@@ -52,7 +52,7 @@ namespace Phanmemwar3.Forms
                 RowCount = 3,
                 Padding = new Padding(16, 10, 16, 10)
             };
-            content.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));  // Header
+            content.RowStyles.Add(new RowStyle(SizeType.Absolute, 86));  // Header (ample room for 3 text rows)
             content.RowStyles.Add(new RowStyle(SizeType.Percent, 100));  // Features card
             content.RowStyles.Add(new RowStyle(SizeType.Absolute, 110)); // Updates & Community card
             shell.Controls.Add(content, 0, 1);
@@ -71,9 +71,9 @@ namespace Phanmemwar3.Forms
             header.Controls.Add(iconBox, 0, 0);
 
             var headerText = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
-            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
-            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
-            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+            headerText.RowStyles.Add(new RowStyle(SizeType.Absolute, 26));
 
             var lblTitle = new Label
             {
@@ -81,7 +81,8 @@ namespace Phanmemwar3.Forms
                 Font = new Font("Segoe UI", 12f, FontStyle.Bold),
                 ForeColor = Color.White,
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseMnemonic = false
             };
             headerText.Controls.Add(lblTitle, 0, 0);
 
@@ -91,7 +92,8 @@ namespace Phanmemwar3.Forms
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(52, 152, 219),
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseMnemonic = false
             };
             headerText.Controls.Add(lblVersion, 0, 1);
 
@@ -101,7 +103,8 @@ namespace Phanmemwar3.Forms
                 Font = new Font("Segoe UI", 8.25f),
                 ForeColor = Color.FromArgb(160, 185, 215),
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseMnemonic = false
             };
             headerText.Controls.Add(lblSub, 0, 2);
 
@@ -112,7 +115,7 @@ namespace Phanmemwar3.Forms
             var cardFeatures = new DarkCardPanel
             {
                 Dock = DockStyle.Fill,
-                Margin = new Padding(0, 6, 0, 6),
+                Margin = new Padding(0, 8, 0, 6),
                 Padding = new Padding(14, 10, 14, 10),
                 BackColor = Color.FromArgb(18, 28, 43),
                 BorderColor = Color.FromArgb(43, 63, 88)
@@ -126,7 +129,8 @@ namespace Phanmemwar3.Forms
                 Text = "KEY CAPABILITIES & ARCHITECTURE",
                 Font = new Font("Segoe UI", 8.25f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(130, 165, 205),
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
+                UseMnemonic = false
             };
             featureLayout.Controls.Add(lblFeatHeader, 0, 0);
 
@@ -146,7 +150,8 @@ namespace Phanmemwar3.Forms
                     Font = new Font("Segoe UI", 8.75f),
                     ForeColor = Color.FromArgb(205, 225, 245),
                     Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleLeft
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    UseMnemonic = false
                 };
                 featureLayout.Controls.Add(lblF, 0, i + 1);
             }
@@ -214,7 +219,8 @@ namespace Phanmemwar3.Forms
                 Font = new Font("Segoe UI", 8.5f),
                 ForeColor = Color.FromArgb(46, 204, 113),
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseMnemonic = false
             };
             updatesLayout.Controls.Add(lblUpdateStatus, 0, 1);
             updatesLayout.SetColumnSpan(lblUpdateStatus, 3);
@@ -240,7 +246,8 @@ namespace Phanmemwar3.Forms
                 Font = new Font("Segoe UI", 8.25f),
                 ForeColor = Color.FromArgb(130, 155, 185),
                 Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
+                TextAlign = ContentAlignment.MiddleLeft,
+                UseMnemonic = false
             };
             footer.Controls.Add(lblCopyright, 0, 0);
 

@@ -42,6 +42,7 @@ namespace Phanmemwar3.Tests
             Test_CompactUILayoutAndLocalization();
             Test_GuideLocalization();
             Test_AppUpdater();
+            Test_AboutFormLayout();
 
             Console.WriteLine("==================================================");
             Console.WriteLine($"SUBTEST RESULTS: {passed} PASSED, {failed} FAILED");
@@ -974,5 +975,67 @@ namespace Phanmemwar3.Tests
                 }
             }
         }
+
+        static void Test_AboutFormLayout()
+        {
+            Console.WriteLine("\n[10] Testing AboutForm Layout, Ampersand Preservation & Visual Sizing");
+            var cfg = new ConfigManager(AppDomain.CurrentDomain.BaseDirectory);
+            using var form = new Phanmemwar3.Forms.AboutForm(cfg);
+
+            Assert(form.ClientSize.Width >= 530, $"AboutForm ClientSize.Width ({form.ClientSize.Width}) >= 530");
+            Assert(form.ClientSize.Height >= 500, $"AboutForm ClientSize.Height ({form.ClientSize.Height}) >= 500");
+
+            // Recursively collect all Label controls to verify UseMnemonic is disabled
+            var labels = new List<System.Windows.Forms.Label>();
+            void CollectLabels(System.Windows.Forms.Control parent)
+            {
+                foreach (System.Windows.Forms.Control c in parent.Controls)
+                {
+                    if (c is System.Windows.Forms.Label lbl) labels.Add(lbl);
+                    CollectLabels(c);
+                }
+            }
+            CollectLabels(form);
+
+            Assert(labels.Count >= 7, $"Found {labels.Count} labels in AboutForm (expected >= 7)");
+
+            int mnemonicDisabledCount = 0;
+            foreach (var lbl in labels)
+            {
+                if (!lbl.UseMnemonic) mnemonicDisabledCount++;
+            }
+            Assert(mnemonicDisabledCount == labels.Count, $"All {labels.Count} labels have UseMnemonic = false (literal '&' preserved without stripping)");
+
+            // Visual render test: render to bitmap and save artifact
+            try
+            {
+                form.ShowInTaskbar = false;
+                form.WindowState = System.Windows.Forms.FormWindowState.Normal;
+                form.Location = new System.Drawing.Point(-3000, -3000);
+                form.Show();
+                System.Windows.Forms.Application.DoEvents();
+
+                using var bmp = new System.Drawing.Bitmap(form.Width, form.Height);
+                form.DrawToBitmap(bmp, new System.Drawing.Rectangle(0, 0, form.Width, form.Height));
+
+                string artifactDir = @"C:\Users\MrPham\.gemini\antigravity\brain\37867477-bdca-4b93-99d3-cc93d1a1d285";
+                if (Directory.Exists(artifactDir))
+                {
+                    string outPng = Path.Combine(artifactDir, "about_preview.png");
+                    bmp.Save(outPng, System.Drawing.Imaging.ImageFormat.Png);
+                    Assert(File.Exists(outPng) && new FileInfo(outPng).Length > 1000, "AboutForm successfully rendered and verified to about_preview.png");
+                }
+                else
+                {
+                    Assert(true, "Bitmap rendered in memory successfully");
+                }
+                form.Close();
+            }
+            catch (Exception ex)
+            {
+                Assert(false, $"AboutForm render failed: {ex.Message}");
+            }
+        }
     }
 }
+
