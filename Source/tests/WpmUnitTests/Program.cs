@@ -405,20 +405,20 @@ namespace Phanmemwar3.Tests
 
             try
             {
-                // Test writing and reading player name
-                bool setOk = RegistryHelper.SetPlayerName("HeroKnight");
-                Assert(setOk, "RegistryHelper sets player name successfully");
-                Assert(RegistryHelper.GetPlayerName() == "HeroKnight", "RegistryHelper reads back player name correctly");
+                // Test default player name War3CM
+                bool setDefOk = RegistryHelper.SetPlayerName("War3CM");
+                Assert(setDefOk, "RegistryHelper sets default player name 'War3CM' successfully");
+                Assert(RegistryHelper.GetPlayerName() == "War3CM", "RegistryHelper reads back 'War3CM' correctly");
 
-                // Test default RPG map player name preservation (25 chars)
-                bool setRpgOk = RegistryHelper.SetPlayerName("Warcraft 3 Custom RPG Map");
-                Assert(setRpgOk, "RegistryHelper sets 25-char player name successfully");
-                Assert(RegistryHelper.GetPlayerName() == "Warcraft 3 Custom RPG Map", "Preserves full player name 'Warcraft 3 Custom RPG Map' (25 chars)");
-
-                // Test safe length boundary (<= 50 chars)
-                RegistryHelper.SetPlayerName(new string('X', 80));
+                // Test safe length boundary strictly limited to 10 chars
+                RegistryHelper.SetPlayerName("SuperLongPlayerNameExceeding10Chars");
                 string? clamped = RegistryHelper.GetPlayerName();
-                Assert(clamped != null && clamped.Length <= 50, "RegistryHelper limits player name length safely to <= 50 chars");
+                Assert(clamped != null && clamped.Length <= 10, "RegistryHelper limits player name length safely to <= 10 chars");
+                Assert(clamped == "SuperLongP", "RegistryHelper clamps to exact first 10 characters");
+
+                // Test name with spaces within 10 chars
+                RegistryHelper.SetPlayerName("W3 RPG Map");
+                Assert(RegistryHelper.GetPlayerName() == "W3 RPG Map", "RegistryHelper preserves player name with spaces within 10 chars");
 
                 // Test memory patcher bounds check
                 bool invalidPidCheck = War3Launcher.PatchPlayerNameInMemory(-1, "SafeTest");
@@ -426,7 +426,7 @@ namespace Phanmemwar3.Tests
             }
             finally
             {
-                RegistryHelper.SetPlayerName(string.IsNullOrEmpty(prevName) ? "Warcraft 3 Custom RPG Map" : prevName);
+                RegistryHelper.SetPlayerName(string.IsNullOrEmpty(prevName) ? "War3CM" : prevName);
             }
         }
 
@@ -769,6 +769,8 @@ namespace Phanmemwar3.Tests
                     using var settingsForm = new Phanmemwar3.Forms.SettingsForm(cfg);
                     var settingsMuteChk = FindControl(settingsForm, c => c.Tag as string == "muteSaveValue");
                     Assert(settingsMuteChk != null, "MuteSaveValue checkbox exists cleanly inside SettingsForm");
+                    var userTxt = FindControl(settingsForm, c => c is Phanmemwar3.Forms.ModernTextBox) as Phanmemwar3.Forms.ModernTextBox;
+                    Assert(userTxt != null && userTxt.MaxLength == 10, "SettingsForm txtUserName limits input to max 10 characters");
                     Assert(settingsForm.ClientSize.Width == 510 && settingsForm.ClientSize.Height == 480, "SettingsForm fixed compact ClientSize is 510x480");
                     Assert(settingsForm.MinimumSize.Width == 510 && settingsForm.MinimumSize.Height == 480, "SettingsForm MinimumSize is 510x480");
                     Assert(settingsForm.MaximumSize.Width == 510 && settingsForm.MaximumSize.Height == 480, "SettingsForm MaximumSize is 510x480");

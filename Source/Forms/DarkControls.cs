@@ -455,6 +455,12 @@ namespace Phanmemwar3.Forms
 
         public TextBox InnerTextBox => _innerBox;
 
+        public int MaxLength
+        {
+            get => _innerBox.MaxLength;
+            set => _innerBox.MaxLength = value;
+        }
+
         public ModernTextBox()
         {
             this.Height = 34;

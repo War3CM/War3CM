@@ -145,7 +145,7 @@ namespace Phanmemwar3.Core
                 return false;
 
             string name = playerName.Trim();
-            if (name.Length > 50) name = name.Substring(0, 50);
+            if (name.Length > 10) name = name.Substring(0, 10);
 
             bool ok = false;
             try

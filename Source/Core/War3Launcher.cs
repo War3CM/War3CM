@@ -14,7 +14,7 @@ namespace Phanmemwar3.Core
         public string GraphicType { get; set; } = "OpenGL"; // OpenGL or DirectX
         public string DisplayMode { get; set; } = "Borderless Windowed"; // Borderless Windowed, Window, Fullscreen
         public int Instances { get; set; } = 1;
-        public string UserName { get; set; } = "Warcraft 3 Custom RPG Map";
+        public string UserName { get; set; } = "War3CM";
         public bool LockMouse { get; set; } = true;
         public bool FixRatio { get; set; } = true;
         public bool WideScreen { get; set; } = true;
@@ -301,7 +301,7 @@ namespace Phanmemwar3.Core
         {
             if (string.IsNullOrWhiteSpace(newName) || pid <= 0) return false;
             string safeName = newName.Trim();
-            if (safeName.Length > 11) safeName = safeName.Substring(0, 11);
+            if (safeName.Length > 10) safeName = safeName.Substring(0, 10);
 
             byte[] nameBytes = new byte[12];
             Encoding.ASCII.GetBytes(safeName, 0, safeName.Length, nameBytes, 0);

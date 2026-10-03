@@ -76,7 +76,7 @@ namespace Phanmemwar3.Forms
             Label Field(string key) => new Label { Text = T(key), Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft,
                 ForeColor = Color.FromArgb(174, 196, 220), AutoEllipsis = true, Font = new Font("Segoe UI", 9f, FontStyle.Bold) };
             content.Controls.Add(Field("userName"), 0, 0);
-            txtUserName = new ModernTextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 6) };
+            txtUserName = new ModernTextBox { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 6), MaxLength = 10 };
             content.Controls.Add(txtUserName, 0, 1);
             content.Controls.Add(Field("gameOptions"), 0, 2);
             ModernCheckBox Check(string key, int row)
@@ -123,7 +123,9 @@ namespace Phanmemwar3.Forms
 
         private void LoadData()
         {
-            txtUserName.TextContent = _config.GetSetting("UserName", "Warcraft 3 Custom RPG Map");
+            string defaultName = _config.GetSetting("UserName", "War3CM");
+            if (defaultName.Length > 10) defaultName = defaultName.Substring(0, 10);
+            txtUserName.TextContent = defaultName;
             chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";
             chkLockMouse.Checked = _config.GetSetting("LockMouse", "1") == "1";
             chkFixRatio.Checked = _config.GetSetting("FixRatio", "1") == "1";
@@ -134,7 +136,8 @@ namespace Phanmemwar3.Forms
         private void BtnSave_Click(object? sender, EventArgs e)
         {
             string userName = txtUserName.TextContent.Trim();
-            if (string.IsNullOrEmpty(userName)) userName = "Warcraft 3 Custom RPG Map";
+            if (string.IsNullOrEmpty(userName)) userName = "War3CM";
+            if (userName.Length > 10) userName = userName.Substring(0, 10);
             _config.SetSetting("UserName", userName);
             RegistryHelper.SetPlayerName(userName);
             _config.SetSetting("MuteSaveValue", chkMuteSaveValue.Checked ? "1" : "0");

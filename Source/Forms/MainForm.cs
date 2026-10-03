@@ -991,7 +991,8 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("DisplayMode", display);
             _config.SaveSettings();
 
-            string userName = _config.GetSetting("UserName", "Warcraft 3 Custom RPG Map");
+            string userName = _config.GetSetting("UserName", "War3CM");
+            if (userName.Length > 10) userName = userName.Substring(0, 10);
             RegistryHelper.SetPlayerName(userName);
 
             var launchOpts = new LaunchOptions
@@ -1115,7 +1116,8 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("RunInstances", instances.ToString());
             _config.SaveSettings();
 
-            string userName = _config.GetSetting("UserName", "Warcraft 3 Custom RPG Map");
+            string userName = _config.GetSetting("UserName", "War3CM");
+            if (userName.Length > 10) userName = userName.Substring(0, 10);
             RegistryHelper.SetPlayerName(userName);
 
             var launchOpts = new LaunchOptions
