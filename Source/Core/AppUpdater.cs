@@ -19,7 +19,7 @@ namespace Phanmemwar3.Core
 
     public static class AppUpdater
     {
-        public const string CURRENT_VERSION = "1.0.3";
+        public const string CURRENT_VERSION = "1.0.4";
         public const string GITHUB_REPO = "War3CM/War3CM";
         public const string RELEASES_API_URL = "https://api.github.com/repos/War3CM/War3CM/releases/latest";
         public const string TARGET_EXE_NAME = "WarcraftPlatformManager.exe";

@@ -897,7 +897,7 @@ namespace Phanmemwar3.Tests
 
             // CurrentVersion and constant check
             Assert(!string.IsNullOrEmpty(Phanmemwar3.Core.AppUpdater.CurrentVersion), "CurrentVersion is non-empty");
-            Assert(Phanmemwar3.Core.AppUpdater.CurrentVersion == "1.0.3", "CurrentVersion is 1.0.3");
+            Assert(Phanmemwar3.Core.AppUpdater.CurrentVersion == "1.0.4", "CurrentVersion is 1.0.4");
 
             // Changelog formatting check
             string rawMarkdown = "# Warcraft Platform Manager v1.0.1\n| Col1 | Col2 |\n|---|---|\n- **Feature 1**: First item\n- **Feature 2**: Second item\n*Keywords: war3 launcher*";
@@ -909,8 +909,9 @@ namespace Phanmemwar3.Tests
             Assert(!formatted.Contains("Keywords:"), "Footer keywords omitted from dialog");
 
             // 1. Version comparison logic
+            Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.5", "1.0.4"), "v1.0.5 is newer than 1.0.4");
+            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.4", "1.0.4"), "v1.0.4 is not newer than 1.0.4");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.4", "1.0.3"), "v1.0.4 is newer than 1.0.3");
-            Assert(!Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.3", "1.0.3"), "v1.0.3 is not newer than 1.0.3");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.3", "1.0.2"), "v1.0.3 is newer than 1.0.2");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.2", "1.0.1"), "v1.0.2 is newer than 1.0.1");
             Assert(Phanmemwar3.Core.AppUpdater.IsNewerVersion("v1.0.1", "1.0.0"), "v1.0.1 is newer than 1.0.0");
