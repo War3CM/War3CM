@@ -435,6 +435,9 @@ namespace Phanmemwar3.Tests
                 // Test memory patcher bounds check
                 bool invalidPidCheck = War3Launcher.PatchPlayerNameInMemory(-1, "SafeTest");
                 Assert(!invalidPidCheck, "War3Launcher.PatchPlayerNameInMemory safely rejects non-positive PID");
+                Assert(!War3Launcher.PatchPlayerNameInMemory(0, "SafeTest"), "War3Launcher.PatchPlayerNameInMemory safely rejects zero PID");
+                Assert(!War3Launcher.PatchPlayerNameInMemory(999999, ""), "War3Launcher.PatchPlayerNameInMemory safely rejects empty name");
+                Assert(!War3Launcher.PatchPlayerNameInMemory(999999, "   "), "War3Launcher.PatchPlayerNameInMemory safely rejects whitespace name");
             }
             finally
             {

@@ -123,7 +123,7 @@ namespace Phanmemwar3.Forms
 
         private void LoadData()
         {
-            string defaultName = _config.GetSetting("UserName", "War3CM");
+            string defaultName = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "War3CM");
             if (defaultName.Length > 10) defaultName = defaultName.Substring(0, 10);
             txtUserName.TextContent = defaultName;
             chkMuteSaveValue.Checked = _config.GetSetting("MuteSaveValue", "1") == "1";

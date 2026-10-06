@@ -58,10 +58,14 @@ namespace Phanmemwar3.Core
             string weBin = Path.Combine(options.War3Path, "4_we_WorldEdit v1.2.9c", "WorldEdit v1.2.9C", "bin");
             string ydweConfig = Path.Combine(weBin, "YDWEConfig.exe");
 
-            // Write EverConfig.cfg if YDWEConfig directory exists
+            // Write EverConfig.cfg (handles weBin, war3Path, and weRoot)
             if (Directory.Exists(weBin))
             {
                 WriteEverConfig(weBin, options);
+            }
+            else
+            {
+                WriteEverConfig(options.War3Path, options);
             }
 
             string mapArgument = "";
@@ -102,7 +106,7 @@ namespace Phanmemwar3.Core
                         if (game == null) Thread.Sleep(200);
                     }
                     if (game == null) return false;
-                    PatchPlayerNameInMemory(game.Id, options.UserName);
+                    StartDelayedPlayerNamePatcher(game.Id, options.UserName);
                     onStarted?.Invoke(game);
                 }
                 else
@@ -146,7 +150,7 @@ namespace Phanmemwar3.Core
                     };
                     var started = Process.Start(psi);
                     if (started == null) return false;
-                    PatchPlayerNameInMemory(started.Id, options.UserName);
+                    StartDelayedPlayerNamePatcher(started.Id, options.UserName);
                     onStarted?.Invoke(started);
                 }
             }
@@ -235,16 +239,24 @@ namespace Phanmemwar3.Core
             sb.AppendLine("EnableDarkMode = 0");
             sb.AppendLine("EnableDotNetSupport = 0");
             sb.AppendLine("EnableMCPPlugin = 1");
-            sb.AppendLine("EnableMapHelper = 0");
+            sb.AppendLine("EnableMapHelper = 1"); // Restored: required for YDWE to hook in-game player name
             sb.AppendLine("EnableTesh = 1");
             sb.AppendLine("EnableYDTrigger = 1");
             sb.AppendLine("MCPPort = 19816");
             sb.AppendLine("[War3Patch]");
             sb.AppendLine("Option = 0");
 
+            string configContent = sb.ToString();
+            // Multi-location write: ensures YDWE finds EverConfig regardless of working directory
+            try { File.WriteAllText(cfgPath, configContent, Encoding.UTF8); } catch { }
+            try { File.WriteAllText(Path.Combine(options.War3Path, "EverConfig.cfg"), configContent, Encoding.UTF8); } catch { }
             try
             {
-                File.WriteAllText(cfgPath, sb.ToString(), Encoding.UTF8);
+                string? weRoot = Path.GetDirectoryName(binDir);
+                if (!string.IsNullOrEmpty(weRoot) && Directory.Exists(weRoot))
+                {
+                    File.WriteAllText(Path.Combine(weRoot, "EverConfig.cfg"), configContent, Encoding.UTF8);
+                }
             }
             catch { }
         }
@@ -297,6 +309,44 @@ namespace Phanmemwar3.Core
         [DllImport("kernel32.dll", EntryPoint = "VirtualProtectEx", SetLastError = true)]
         private static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress, UIntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
 
+        [DllImport("kernel32.dll", EntryPoint = "ReadProcessMemory", SetLastError = true)]
+        private static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesRead);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MEMORY_BASIC_INFORMATION
+        {
+            public IntPtr BaseAddress;
+            public IntPtr AllocationBase;
+            public uint AllocationProtect;
+            public IntPtr RegionSize;
+            public uint State;
+            public uint Protect;
+            public uint Type;
+        }
+
+        [DllImport("kernel32.dll", EntryPoint = "VirtualQueryEx", SetLastError = true)]
+        private static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
+
+        private static void StartDelayedPlayerNamePatcher(int pid, string userName)
+        {
+            if (pid <= 0 || string.IsNullOrWhiteSpace(userName)) return;
+            PatchPlayerNameInMemory(pid, userName);
+            _ = Task.Run(async () =>
+            {
+                for (int retry = 0; retry < 12; retry++)
+                {
+                    await Task.Delay(350).ConfigureAwait(false);
+                    try
+                    {
+                        var p = Process.GetProcessById(pid);
+                        if (p.HasExited) break;
+                        PatchPlayerNameInMemory(pid, userName);
+                    }
+                    catch { break; }
+                }
+            });
+        }
+
         public static bool PatchPlayerNameInMemory(int pid, string newName)
         {
             if (string.IsNullOrWhiteSpace(newName) || pid <= 0) return false;
@@ -310,6 +360,7 @@ namespace Phanmemwar3.Core
             {
                 using var proc = Process.GetProcessById(pid);
                 IntPtr gameBase = IntPtr.Zero;
+                int gameSize = 0;
                 try
                 {
                     foreach (ProcessModule mod in proc.Modules)
@@ -317,6 +368,7 @@ namespace Phanmemwar3.Core
                         if (string.Equals(mod.ModuleName, "Game.dll", StringComparison.OrdinalIgnoreCase))
                         {
                             gameBase = mod.BaseAddress;
+                            gameSize = mod.ModuleMemorySize;
                             break;
                         }
                     }
@@ -324,25 +376,85 @@ namespace Phanmemwar3.Core
                 catch { }
 
                 if (gameBase == IntPtr.Zero)
+                {
                     gameBase = new IntPtr(0x6F000000);
+                    gameSize = 0x1000000;
+                }
 
-                IntPtr targetAddr = IntPtr.Add(gameBase, 0x00A54A14);
                 IntPtr hProcess = OpenProcess(0x1F0FFF, false, pid);
                 if (hProcess == IntPtr.Zero) return false;
 
+                bool patched = false;
                 try
                 {
+                    // 1. Direct offset write (Warcraft 1.24e / 1.26a)
+                    IntPtr targetAddr = IntPtr.Add(gameBase, 0x00A54A14);
                     if (VirtualProtectEx(hProcess, targetAddr, (UIntPtr)nameBytes.Length, 0x40 /* PAGE_EXECUTE_READWRITE */, out uint oldProtect))
                     {
-                        bool written = WriteProcessMemory(hProcess, targetAddr, nameBytes, nameBytes.Length, out _);
+                        if (WriteProcessMemory(hProcess, targetAddr, nameBytes, nameBytes.Length, out _))
+                            patched = true;
                         VirtualProtectEx(hProcess, targetAddr, (UIntPtr)nameBytes.Length, oldProtect, out _);
-                        return written;
+                    }
+
+                    // 2. Dynamic memory scan for "WorldEdit" in Game.dll writable memory pages
+                    if (gameBase != IntPtr.Zero && gameSize > 0)
+                    {
+                        IntPtr current = gameBase;
+                        IntPtr end = IntPtr.Add(gameBase, gameSize);
+                        byte[] pattern = Encoding.ASCII.GetBytes("WorldEdit");
+                        byte[] patternLower = Encoding.ASCII.GetBytes("worldedit");
+
+                        while (current.ToInt64() < end.ToInt64())
+                        {
+                            if (VirtualQueryEx(hProcess, current, out MEMORY_BASIC_INFORMATION mbi, (uint)Marshal.SizeOf<MEMORY_BASIC_INFORMATION>()) == 0)
+                                break;
+
+                            long regionSize = mbi.RegionSize.ToInt64();
+                            if (regionSize <= 0) break;
+
+                            // MEM_COMMIT = 0x1000; Check writable pages: PAGE_READWRITE (0x04) or PAGE_EXECUTE_READWRITE (0x40)
+                            if (mbi.State == 0x1000 && (mbi.Protect == 0x04 || mbi.Protect == 0x40))
+                            {
+                                int readLen = (int)Math.Min(regionSize, 256 * 1024);
+                                byte[] buffer = new byte[readLen];
+                                if (ReadProcessMemory(hProcess, mbi.BaseAddress, buffer, readLen, out IntPtr bytesRead) && bytesRead.ToInt32() > pattern.Length)
+                                {
+                                    int actual = bytesRead.ToInt32();
+                                    for (int i = 0; i <= actual - pattern.Length; i++)
+                                    {
+                                        bool match = true;
+                                        for (int j = 0; j < pattern.Length; j++)
+                                        {
+                                            byte b = buffer[i + j];
+                                            if (b != pattern[j] && b != patternLower[j])
+                                            {
+                                                match = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (match)
+                                        {
+                                            IntPtr matchAddr = IntPtr.Add(mbi.BaseAddress, i);
+                                            if (WriteProcessMemory(hProcess, matchAddr, nameBytes, nameBytes.Length, out _))
+                                            {
+                                                patched = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            current = IntPtr.Add(current, (int)Math.Min(regionSize, int.MaxValue));
+                        }
                     }
                 }
                 finally
                 {
                     CloseHandle(hProcess);
                 }
+
+                return patched;
             }
             catch { }
             return false;

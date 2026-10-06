@@ -1063,7 +1063,7 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("DisplayMode", display);
             _config.SaveSettings();
 
-            string userName = _config.GetSetting("UserName", "War3CM");
+            string userName = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "War3CM");
             if (userName.Length > 10) userName = userName.Substring(0, 10);
             RegistryHelper.SetPlayerName(userName);
 
@@ -1188,7 +1188,7 @@ namespace Phanmemwar3.Forms
             _config.SetSetting("RunInstances", instances.ToString());
             _config.SaveSettings();
 
-            string userName = _config.GetSetting("UserName", "War3CM");
+            string userName = _config.GetSetting("UserName", RegistryHelper.GetPlayerName() ?? "War3CM");
             if (userName.Length > 10) userName = userName.Substring(0, 10);
             RegistryHelper.SetPlayerName(userName);
 
